@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fixed Asset Management Dashboard - May Pen Hospital</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <title>TrainHub - Interactive Video Platform</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -13,714 +12,126 @@
             box-sizing: border-box;
         }
 
-        :root {
-            --primary-orange: #FF6B35;
-            --dark-orange: #E55934;
-            --primary-green: #2ECC71;
-            --dark-green: #27AE60;
-            --dark-gray: #2C3E50;
-            --light-gray: #ECF0F1;
-            --shadow: rgba(0, 0, 0, 0.1);
-            
-            /* Light mode colors */
-            --bg-primary: #f5f7fa;
-            --bg-secondary: #e9ecef;
-            --bg-card: #ffffff;
-            --text-primary: #2C3E50;
-            --text-secondary: #7f8c8d;
-            --border-color: #e0e0e0;
-            --table-hover: #f8f9fa;
-        }
-
-        body.dark-mode {
-            --bg-primary: #1a1a2e;
-            --bg-secondary: #16213e;
-            --bg-card: #0f3460;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0a0a0;
-            --border-color: #2d4059;
-            --table-hover: #16213e;
-            --shadow: rgba(0, 0, 0, 0.3);
-        }
-
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: var(--text-primary);
-            transition: background 0.3s ease, color 0.3s ease;
         }
 
-        .dashboard-container {
-            max-width: 1600px;
+        .container {
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
 
-        .page {
-            display: none;
+        /* Setup Screen */
+        .setup-screen {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 50px;
+            max-width: 600px;
+            margin: 100px auto;
+            text-align: center;
         }
 
-        .page.active {
-            display: block;
-        }
-
-        .header {
-            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px var(--shadow);
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 40%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.05);
-            transform: rotate(35deg);
-        }
-
-        .header-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .dashboard-title {
-            font-size: 2.5em;
-            font-weight: 700;
+        .setup-screen h1 {
+            font-size: 36px;
             margin-bottom: 10px;
+            color: #333;
         }
 
-        .dashboard-subtitle {
-            font-size: 1.1em;
-            opacity: 0.95;
-            margin-bottom: 25px;
+        .setup-screen p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
         }
 
-        .status-bar {
-            background: rgba(255, 255, 255, 0.2);
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .input-group input {
+            width: 100%;
             padding: 15px;
+            border: 2px solid #e0e0e0;
             border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
+            font-size: 16px;
+            transition: border-color 0.3s;
         }
 
-        .status-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        .status-indicator.connected { background: #58D68D; }
-        .status-indicator.error { background: #ff4444; }
-        .status-indicator.loading { background: #ffa500; }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
         }
 
         .btn {
-            padding: 10px 25px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .refresh-btn {
-            background: white;
-            color: var(--primary-orange);
-        }
-
-        .monthly-view-btn {
-            background: var(--primary-green);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            font-size: 1em;
-            padding: 12px 30px;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-top: 10px;
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
         }
 
-        /* NEW FEATURES STYLES */
-        .feature-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
 
-        .tab-btn {
-            padding: 10px 20px;
-            border: none;
-            background: var(--border-color);
-            color: var(--text-primary);
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .tab-btn.active {
-            background: var(--primary-green);
-            color: white;
-        }
-
-        .depreciation-calculator {
-            background: var(--bg-card);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow);
-            margin-bottom: 30px;
-            transition: background 0.3s ease;
-        }
-
-        .calc-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .calc-input {
-            padding: 12px 15px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1em;
-            background: var(--bg-card);
-            color: var(--text-primary);
-            transition: all 0.3s;
-        }
-
-        .calc-result {
-            background: var(--table-hover);
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            border-left: 5px solid var(--primary-green);
-            transition: background 0.3s ease;
-        }
-
-        .warranty-tracker {
-            background: var(--bg-card);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow);
-            margin-bottom: 30px;
-            transition: background 0.3s ease;
-        }
-
-        .warranty-item {
+        .info-box {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 10px;
             padding: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.3s ease;
-        }
-
-        .warranty-status {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-        }
-
-        .warranty-status.active { background: rgba(46, 204, 113, 0.1); color: var(--dark-green); }
-        .warranty-status.expiring { background: rgba(255, 193, 7, 0.1); color: #856404; }
-        .warranty-status.expired { background: rgba(220, 53, 69, 0.1); color: #721c24; }
-
-        .barcode-generator {
-            background: var(--bg-card);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow);
-            margin-bottom: 30px;
-            transition: background 0.3s ease;
-        }
-
-        .barcode-output {
-            text-align: center;
-            padding: 20px;
-            border: 2px dashed var(--border-color);
-            border-radius: 8px;
-            margin-top: 15px;
-            background: var(--bg-card);
-            transition: all 0.3s ease;
-        }
-
-        .audit-trail {
-            background: var(--bg-card);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow);
-            margin-bottom: 30px;
-            transition: background 0.3s ease;
-        }
-
-        .audit-entry {
-            padding: 15px;
-            border-left: 4px solid var(--primary-green);
-            background: var(--table-hover);
-            margin-bottom: 10px;
-            border-radius: 0 8px 8px 0;
-            transition: background 0.3s ease;
-        }
-
-        .audit-timestamp {
-            font-size: 0.85em;
-            color: var(--text-secondary);
-            margin-bottom: 5px;
-        }
-
-        .print-section {
-            background: var(--bg-card);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow);
-            margin-bottom: 30px;
-            transition: background 0.3s ease;
-        }
-
-        .print-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .print-btn {
-            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        @media print {
-            body { background: white; }
-            .header, .search-section, .btn, .tab-btn, .no-print { display: none !important; }
-            .page { display: block !important; }
-        }
-
-        .search-section {
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow);
-            margin-bottom: 30px;
-            transition: background 0.3s ease;
-        }
-
-        .search-title {
-            font-size: 1.3em;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 15px;
-        }
-
-        .search-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .search-input {
-            padding: 12px 20px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1em;
-            transition: all 0.3s;
-            background: var(--bg-card);
-            color: var(--text-primary);
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary-green);
-            box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.1);
-        }
-
-        .search-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .search-btn {
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .clear-btn {
-            background: #6c757d;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .search-results-box {
-            background: var(--bg-card);
-            border: 2px solid var(--primary-green);
-            border-radius: 12px;
-            padding: 20px;
             margin-top: 20px;
-            width: 4.5in;
-            max-width: 100%;
-            min-height: 200px;
-            box-shadow: 0 4px 20px var(--shadow);
-            display: none;
-            transition: background 0.3s ease;
-        }
-
-        .search-results-box.show {
-            display: block;
-        }
-
-        .search-results-header {
-            font-size: 1.1em;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        .search-result-item {
-            padding: 15px;
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.3s;
-        }
-
-        .search-result-item:hover {
-            background: var(--table-hover);
-        }
-
-        .search-result-item:last-child {
-            border-bottom: none;
-        }
-
-        .result-code {
-            font-weight: 700;
-            color: var(--primary-orange);
-            font-size: 1.1em;
-            font-family: 'Courier New', monospace;
-        }
-
-        .result-description {
-            margin: 5px 0;
-            color: var(--text-primary);
-        }
-
-        .result-details {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 8px;
-            font-size: 0.9em;
-            color: var(--text-secondary);
-        }
-
-        .result-price {
-            font-weight: 600;
-            color: var(--primary-green);
-            font-size: 1em;
-        }
-
-        .kpi-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .kpi-card {
-            background: var(--bg-card);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow);
-            transition: all 0.3s;
-        }
-
-        .kpi-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px var(--shadow);
-        }
-
-        .kpi-card.orange { border-left: 5px solid var(--primary-orange); }
-        .kpi-card.green { border-left: 5px solid var(--primary-green); }
-
-        .kpi-label {
-            font-size: 0.9em;
-            color: var(--text-secondary);
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .kpi-value {
-            font-size: 2.2em;
-            font-weight: 700;
-            margin: 10px 0;
-        }
-
-        .kpi-value.orange { color: var(--primary-orange); }
-        .kpi-value.green { color: var(--primary-green); }
-
-        .kpi-subtitle {
-            font-size: 0.85em;
-            color: #95a5a6;
-        }
-
-        .chart-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .chart-card {
-            background: var(--bg-card);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow);
-            transition: background 0.3s ease;
-        }
-
-        .chart-title {
-            font-size: 1.2em;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: var(--text-primary);
-        }
-
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-            max-width: 100%;
-        }
-        
-        .chart-container canvas {
-            max-width: 100% !important;
-            max-height: 100% !important;
-        }
-
-        .data-section {
-            background: var(--bg-card);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow);
-            margin-bottom: 30px;
-            transition: background 0.3s ease;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        .section-title {
-            font-size: 1.5em;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .view-toggle {
-            display: flex;
-            gap: 10px;
-        }
-
-        .toggle-btn {
-            padding: 8px 20px;
-            border: 2px solid var(--border-color);
-            background: var(--bg-card);
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            color: var(--text-primary);
-        }
-
-        .toggle-btn.active {
-            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
-            color: white;
-            border-color: var(--primary-orange);
-        }
-
-        .table-container {
-            overflow-x: auto;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
-        }
-
-        th {
-            color: white;
-            padding: 15px 12px;
             text-align: left;
-            font-weight: 600;
-            font-size: 0.9em;
-            text-transform: uppercase;
+            font-size: 14px;
         }
 
-        tbody tr {
-            border-bottom: 1px solid var(--border-color);
-            transition: all 0.3s;
-        }
-
-        tbody tr:hover {
-            background: var(--table-hover);
-        }
-
-        td {
-            padding: 12px;
-            font-size: 0.95em;
-            color: var(--text-primary);
-        }
-
-        .asset-code {
-            font-weight: 600;
-            color: var(--primary-orange);
-            font-family: 'Courier New', monospace;
-        }
-
-        .item-type-badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-        }
-
-        .item-type-badge.medical {
-            background: rgba(46, 204, 113, 0.1);
-            color: var(--dark-green);
-        }
-
-        .item-type-badge.furniture {
-            background: rgba(255, 107, 53, 0.1);
-            color: var(--dark-orange);
-        }
-
-        .monthly-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .month-card {
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow);
-            border-left: 5px solid var(--primary-orange);
-            transition: background 0.3s ease;
-        }
-
-        .month-card.has-data {
-            border-left-color: var(--primary-green);
-        }
-
-        .month-header {
-            font-size: 1.3em;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--border-color);
-        }
-
-        .month-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .month-stat {
-            text-align: center;
-            padding: 15px;
-            background: var(--table-hover);
-            border-radius: 8px;
-            transition: background 0.3s ease;
-        }
-
-        .month-stat-label {
-            font-size: 0.85em;
-            color: var(--text-secondary);
-            margin-bottom: 5px;
-        }
-
-        .month-stat-value {
-            font-size: 1.5em;
-            font-weight: 700;
-            color: var(--primary-green);
+        .info-box strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #1565c0;
         }
 
         .loading {
-            text-align: center;
-            padding: 50px;
-            color: var(--text-secondary);
+            display: none;
+            margin-top: 20px;
         }
 
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid var(--border-color);
-            border-top-color: var(--primary-orange);
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
             border-radius: 50%;
-            margin: 0 auto 20px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
+            margin: 0 auto;
         }
 
         @keyframes spin {
@@ -728,2090 +139,927 @@
             100% { transform: rotate(360deg); }
         }
 
-        .export-btn {
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
+        /* Video Call Screen */
+        .video-screen {
+            display: none;
+        }
+
+        .video-screen.show {
+            display: block;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h2 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .room-info {
+            background: #667eea;
             color: white;
-            padding: 15px 30px;
-            border-radius: 50px;
-            border: none;
-            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
             font-weight: 600;
-            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.3);
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 100;
         }
 
-        .footer {
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            aspect-ratio: 16/9;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .video-label {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        .no-video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             text-align: center;
-            padding: 20px;
-            color: var(--text-secondary);
-            font-size: 0.9em;
+            color: white;
         }
 
-        /* Night Mode Toggle Button */
-        .night-mode-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
+        .no-video-icon {
+            width: 80px;
+            height: 80px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 10px;
+        }
+
+        .recording-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #dc3545;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+
+        .recording-badge.show {
+            display: block;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-btn {
             width: 60px;
             height: 60px;
             border-radius: 50%;
             border: none;
-            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--dark-orange) 100%);
+            background: #667eea;
             color: white;
-            font-size: 1.5em;
             cursor: pointer;
-            box-shadow: 0 4px 20px var(--shadow);
-            transition: all 0.3s ease;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s;
+            position: relative;
         }
 
-        .night-mode-toggle:hover {
+        .control-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 6px 30px var(--shadow);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
 
-        body.dark-mode .night-mode-toggle {
-            background: linear-gradient(135deg, var(--primary-green) 0%, var(--dark-green) 100%);
+        .control-btn.active {
+            background: #dc3545;
+        }
+
+        .control-btn.recording {
+            background: #dc3545;
+            animation: pulse 1.5s infinite;
+        }
+
+        .control-btn.leave {
+            background: #dc3545;
+        }
+
+        .control-label {
+            position: absolute;
+            bottom: -22px;
+            font-size: 11px;
+            color: #333;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .participants-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .participants-panel h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .participant-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .participant-badge {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .chat-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-panel h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .chat-messages {
+            height: 200px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .message strong {
+            color: #667eea;
+        }
+
+        .message.system {
+            background: #e3f2fd;
+            color: #1565c0;
+            font-style: italic;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .chat-input button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none;
         }
 
         @media (max-width: 768px) {
-            .night-mode-toggle {
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-btn {
                 width: 50px;
                 height: 50px;
-                font-size: 1.2em;
-                top: 10px;
-                right: 10px;
+                font-size: 20px;
             }
-        }
 
-        .error-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
-        }
-
-        .error-box h4 {
-            color: #856404;
-            margin-bottom: 10px;
-        }
-
-        .error-box ol {
-            margin-left: 20px;
-            color: #856404;
-        }
-
-        .error-box li {
-            margin: 8px 0;
+            .setup-screen {
+                padding: 30px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Night Mode Toggle Button -->
-    <button class="night-mode-toggle" onclick="toggleNightMode()" title="Toggle Night Mode">
-        <span id="nightModeIcon">🌙</span>
-    </button>
-    
-    <div class="dashboard-container">
-        <!-- PAGE 1: MAIN DASHBOARD -->
-        <div class="page active" id="page1">
-            <div class="header">
-                <div class="header-content">
-                    <h1 class="dashboard-title">Fixed Asset Management Dashboard</h1>
-                    <div class="dashboard-subtitle">May Pen Hospital • Currency: JMD (Jamaican Dollar)</div>
-                    
-                    <div class="status-bar">
-                        <div class="status-item">
-                            <span class="status-indicator loading" id="statusIndicator"></span>
-                            <span id="statusText">Initializing...</span>
-                        </div>
-                        <div class="status-item">
-                            <span id="lastUpdateText">Starting up...</span>
-                        </div>
-                        <button class="btn refresh-btn" onclick="loadData()">🔄 Refresh</button>
-                        <button class="btn monthly-view-btn" onclick="showPage(2)">📊 Monthly Breakdown</button>
-                        <button class="btn monthly-view-btn" onclick="showPage(3)">🛠️ Tools & Features</button>
-                        <button class="btn monthly-view-btn" onclick="showPage(4)">📍 Asset Location</button>
-                    </div>
-                </div>
-            </div>
+    <!-- Setup Screen -->
+    <div class="setup-screen" id="setupScreen">
+        <h1>🎓 TrainHub</h1>
+        <p>Professional Video Training Platform</p>
 
-            <div class="search-section">
-                <h2 class="search-title">🔍 Asset Search Engine</h2>
-                <div class="search-container">
-                    <input type="text" id="assetCodeSearch" class="search-input" placeholder="Asset Code">
-                    <input type="text" id="descriptionSearch" class="search-input" placeholder="Description">
-                    <input type="text" id="serialSearch" class="search-input" placeholder="Serial/Model">
-                    <input type="text" id="supplierSearch" class="search-input" placeholder="Supplier/Donor">
-                </div>
-                <div class="search-buttons">
-                    <button class="search-btn" onclick="performSearch()">Search</button>
-                    <button class="clear-btn" onclick="clearSearch()">Clear</button>
-                </div>
-                
-                <div class="search-results-box" id="searchResultsBox">
-                    <div class="search-results-header" id="searchResultsHeader">Search Results</div>
-                    <div id="searchResultsContent"></div>
-                </div>
-            </div>
-
-            <div class="kpi-section" id="kpiSection"></div>
-
-            <div class="chart-section">
-                <div class="chart-card">
-                    <h3 class="chart-title">Asset Distribution</h3>
-                    <div class="chart-container">
-                        <canvas id="distributionChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <h3 class="chart-title">Monthly Value Trend (JMD)</h3>
-                    <div class="chart-container">
-                        <canvas id="monthlyChart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="data-section">
-                <div class="section-header">
-                    <h2 class="section-title">Asset Inventory</h2>
-                    <div class="view-toggle">
-                        <button class="toggle-btn active" onclick="switchView('all', this)">All</button>
-                        <button class="toggle-btn" onclick="switchView('purchased', this)">Purchased</button>
-                        <button class="toggle-btn" onclick="switchView('donated', this)">Donated</button>
-                    </div>
-                </div>
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
-                    <strong style="font-size: 1.2em; color: var(--dark-gray);">Grand Total: </strong>
-                    <span id="grandTotalDisplay" style="font-size: 1.5em; font-weight: 700; color: var(--primary-green);">JMD 0.00</span>
-                </div>
-                <div class="table-container" id="tableContainer">
-                    <div class="loading">
-                        <div class="loading-spinner"></div>
-                        <p>Loading asset data from Google Sheets...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="footer">
-                <p>Fixed Asset Management System © 2024 • May Pen Hospital</p>
-            </div>
+        <div class="input-group">
+            <label for="userName">Your Name</label>
+            <input type="text" id="userName" placeholder="Enter your full name" value="">
         </div>
 
-        <!-- PAGE 4: ASSET LOCATION DASHBOARD -->
-        <div class="page" id="page4">
-            <div class="header">
-                <div class="header-content">
-                    <h1 class="dashboard-title">Asset Location Dashboard</h1>
-                    <div class="dashboard-subtitle">Track all asset locations and placements • All Purchased & Donated Assets</div>
-                    
-                    <div class="status-bar">
-                        <button class="btn refresh-btn" onclick="showPage(1)">← Back to Dashboard</button>
-                        <button class="btn monthly-view-btn" onclick="loadAssetLocationData()">🔄 Refresh Location Data</button>
-                        <button class="btn monthly-view-btn" onclick="showPage(3)">🛠️ Tools & Features</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Asset Location Summary Cards -->
-            <div class="kpi-section" id="locationKpiSection">
-                <div class="kpi-card green">
-                    <div class="kpi-label">Total Asset Locations</div>
-                    <div class="kpi-value green" id="totalAssetLocations">0</div>
-                    <div class="kpi-subtitle">Asset placement records</div>
-                </div>
-                
-                <div class="kpi-card orange">
-                    <div class="kpi-label">Total Quantity Out</div>
-                    <div class="kpi-value orange" id="totalQuantityOut">0</div>
-                    <div class="kpi-subtitle">Assets distributed</div>
-                </div>
-                
-                <div class="kpi-card green">
-                    <div class="kpi-label">Active Locations</div>
-                    <div class="kpi-value green" id="uniqueActiveLocations">0</div>
-                    <div class="kpi-subtitle">Departments with assets</div>
-                </div>
-                
-                <div class="kpi-card orange">
-                    <div class="kpi-label">Recent Placements</div>
-                    <div class="kpi-value orange" id="recentPlacements">0</div>
-                    <div class="kpi-subtitle">Last 30 days</div>
-                </div>
-            </div>
-
-            <!-- Asset Location Filters -->
-            <div class="search-section">
-                <h2 class="search-title">🔍 Asset Location Filters</h2>
-                <div class="search-container">
-                    <input type="date" id="assetLocationDateFrom" class="search-input" placeholder="Date-Out From">
-                    <input type="date" id="assetLocationDateTo" class="search-input" placeholder="Date-Out To">
-                    <select id="assetLocationFilter" class="search-input">
-                        <option value="">All Locations</option>
-                        <option value="Administrator Office">Administrator Office</option>
-                        <option value="CEO Office">CEO Office</option>
-                        <option value="Laundry Department">Laundry Department</option>
-                        <option value="General Stores Department">General Stores Department</option>
-                        <option value="Radiology Department">Radiology Department</option>
-                        <option value="Emergency Department">Emergency Department</option>
-                        <option value="Surgical Department">Surgical Department</option>
-                        <option value="ICU">ICU</option>
-                        <option value="Laboratory">Laboratory</option>
-                        <option value="Pharmacy">Pharmacy</option>
-                        <option value="Kitchen">Kitchen</option>
-                        <option value="Maintenance">Maintenance</option>
-                    </select>
-                    <input type="text" id="assetLocationCodeFilter" class="search-input" placeholder="Asset Code">
-                </div>
-                <div class="search-buttons">
-                    <button class="search-btn" onclick="filterAssetLocationData()">Apply Filters</button>
-                    <button class="clear-btn" onclick="clearAssetLocationFilters()">Clear Filters</button>
-                </div>
-            </div>
-
-            <!-- Asset Location Data Table -->
-            <div class="data-section">
-                <div class="section-header">
-                    <h2 class="section-title">Asset Location Records</h2>
-                    <div class="view-toggle">
-                        <button class="toggle-btn active" onclick="switchAssetLocationView('all', this)">All</button>
-                        <button class="toggle-btn" onclick="switchAssetLocationView('purchased', this)">Purchased</button>
-                        <button class="toggle-btn" onclick="switchAssetLocationView('donated', this)">Donated</button>
-                        <button class="toggle-btn" onclick="switchAssetLocationView('recent', this)">Recent</button>
-                    </div>
-                </div>
-                
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
-                    <strong style="font-size: 1.2em; color: var(--dark-gray);">Location Records: </strong>
-                    <span id="filteredLocationCount" style="font-size: 1.5em; font-weight: 700; color: var(--primary-green);">0</span>
-                    <span style="margin-left: 20px;"><strong>Total Quantity: </strong></span>
-                    <span id="filteredLocationQuantity" style="font-size: 1.2em; font-weight: 700; color: var(--primary-orange);">0</span>
-                </div>
-                
-                <div class="table-container" id="assetLocationTableContainer">
-                    <div class="loading">
-                        <div class="loading-spinner"></div>
-                        <p>Loading asset location data...</p>
-                        <p>Fetching Date-Out, Qty-Out, Asset Code, and Asset Location from columns N, O, P, Q...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="footer">
-                <p>Fixed Asset Management System © 2024 • May Pen Hospital</p>
-            </div>
+        <div class="input-group">
+            <label for="roomId">Room Code</label>
+            <input type="text" id="roomId" placeholder="Enter room code to join existing session" value="">
         </div>
 
-        <!-- PAGE 2: MONTHLY BREAKDOWN -->
-        <div class="page" id="page2">
-            <div class="header">
-                <div class="header-content">
-                    <h1 class="dashboard-title">Monthly Breakdown</h1>
-                    <div class="dashboard-subtitle">Detailed view of all 12 months • Currency: JMD</div>
-                    
-                    <div class="status-bar">
-                        <button class="btn refresh-btn" onclick="showPage(1)">← Back to Dashboard</button>
-                        <button class="btn monthly-view-btn" onclick="loadData()">🔄 Refresh Data</button>
-                    </div>
-                </div>
-            </div>
+        <button class="btn" id="joinBtn" onclick="joinSession()">Join Video Session</button>
 
-            <div id="monthlyBreakdownContainer" class="monthly-grid"></div>
-
-            <div class="footer">
-                <p>Fixed Asset Management System © 2024 • May Pen Hospital</p>
-            </div>
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #666;">Connecting to video session...</p>
         </div>
 
-        <!-- PAGE 3: NEW TOOLS & FEATURES -->
-        <div class="page" id="page3">
+        <div class="info-box">
+            <strong>📋 Instructions:</strong>
+            1. Enter your name<br>
+            2. Create a new room code (e.g., "Training123") or enter an existing one<br>
+            3. Share the room code with others to join the same session<br>
+            4. Click "Join Video Session" and allow camera/microphone access<br>
+            5. Others can join by entering the same room code
+        </div>
+    </div>
+
+    <!-- Video Call Screen -->
+    <div class="video-screen" id="videoScreen">
+        <div class="container">
             <div class="header">
-                <div class="header-content">
-                    <h1 class="dashboard-title">Tools & Features</h1>
-                    <div class="dashboard-subtitle">Advanced asset management tools</div>
-                    
-                    <div class="status-bar">
-                        <button class="btn refresh-btn" onclick="showPage(1)">← Back to Dashboard</button>
-                        <button class="btn monthly-view-btn" onclick="showPage(2)">📊 Monthly View</button>
-                    </div>
-                </div>
+                <h2>🎓 TrainHub Session</h2>
+                <div class="room-info">Room: <span id="currentRoom"></span></div>
             </div>
 
-            <!-- Feature Tabs -->
-            <div class="feature-tabs">
-                <button class="tab-btn active" onclick="switchTab('depreciation', this)">💰 Depreciation Calculator</button>
-                <button class="tab-btn" onclick="switchTab('warranty', this)">🛡️ Warranty Tracker</button>
-                <button class="tab-btn" onclick="switchTab('qrcode', this)">📱 QR Code Generator</button>
-                <button class="tab-btn" onclick="switchTab('audit', this)">📋 Asset Audit Trail</button>
-                <button class="tab-btn" onclick="switchTab('print', this)">🖨️ Print Reports</button>
+            <div class="video-grid" id="videoGrid">
+                <!-- Videos will be added here dynamically -->
             </div>
 
-            <!-- Depreciation Calculator -->
-            <div class="depreciation-calculator" id="depreciationTab">
-                <h2 class="section-title">📈 Asset Depreciation Calculator</h2>
-                <div class="calc-grid">
-                    <input type="number" id="assetCost" class="calc-input" placeholder="Asset Cost (JMD)">
-                    <input type="number" id="usefulLife" class="calc-input" placeholder="Useful Life (years)">
-                    <input type="number" id="salvageValue" class="calc-input" placeholder="Salvage Value (JMD)">
-                    <select id="depreciationMethod" class="calc-input">
-                        <option value="straight">Straight Line</option>
-                        <option value="declining">Declining Balance</option>
-                    </select>
-                </div>
-                <button class="search-btn" onclick="calculateDepreciation()">Calculate Depreciation</button>
-                <div class="calc-result" id="depreciationResult" style="display: none;">
-                    <h3>Depreciation Results</h3>
-                    <div id="depreciationDetails"></div>
-                </div>
+            <div class="controls">
+                <button class="control-btn" id="micBtn" onclick="toggleMic()">
+                    🎤
+                    <span class="control-label">Mic</span>
+                </button>
+                <button class="control-btn" id="camBtn" onclick="toggleCamera()">
+                    📹
+                    <span class="control-label">Camera</span>
+                </button>
+                <button class="control-btn" id="screenBtn" onclick="toggleScreen()">
+                    🖥️
+                    <span class="control-label">Screen</span>
+                </button>
+                <button class="control-btn" id="recordBtn" onclick="toggleRecording()">
+                    ⏺
+                    <span class="control-label">Record</span>
+                </button>
+                <button class="control-btn leave" onclick="leaveSession()">
+                    📞
+                    <span class="control-label">Leave</span>
+                </button>
             </div>
 
-            <!-- Warranty Tracker -->
-            <div class="warranty-tracker" id="warrantyTab" style="display: none;">
-                <h2 class="section-title">🛡️ Warranty Status Tracker</h2>
-                <div style="margin-bottom: 20px;">
-                    <label>
-                        <input type="checkbox" id="showAllAssets" onchange="updateWarrantyDisplay()" checked> 
-                        Show all purchased assets
-                    </label>
-                    <label style="margin-left: 20px;">
-                        <input type="checkbox" id="showExpiringOnly" onchange="updateWarrantyDisplay()"> 
-                        Show expiring/expired only
-                    </label>
-                </div>
-                <div id="warrantyList">
-                    <div class="loading">
-                        <p>Loading warranty information from asset database...</p>
-                        <p>Once asset data is loaded, warranty status will be calculated based on purchase dates.</p>
-                    </div>
-                </div>
-                <div style="margin-top: 20px;">
-                    <button class="search-btn" onclick="generateWarrantyReport()">Generate Warranty Report</button>
-                    <button class="search-btn" onclick="updateWarrantyStatus()" style="margin-left: 10px;">Refresh Warranty Status</button>
-                </div>
+            <div class="participants-panel">
+                <h3>👥 Participants (<span id="participantCount">0</span>)</h3>
+                <div class="participant-list" id="participantList"></div>
             </div>
 
-            <!-- QR Code Generator -->
-            <div class="barcode-generator" id="qrcodeTab" style="display: none;">
-                <h2 class="section-title">📱 Asset QR Code Generator</h2>
-                <div class="calc-grid">
-                    <input type="text" id="qrAssetCode" class="calc-input" placeholder="Asset Code (e.g., MPH-001-2025)">
-                    <select id="qrDataFormat" class="calc-input">
-                        <option value="basic">Basic Asset Code</option>
-                        <option value="detailed">Asset Code + Description</option>
-                        <option value="full">Full Asset Information</option>
-                        <option value="url">Hospital Asset URL</option>
-                    </select>
+            <div class="chat-panel">
+                <h3>💬 Chat</h3>
+                <div class="chat-messages" id="chatMessages"></div>
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="handleChatKey(event)">
+                    <button onclick="sendChat()">Send</button>
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <button class="search-btn" onclick="generateQRCode()">Generate QR Code</button>
-                    <button class="search-btn" onclick="generateBatchQR()" style="margin-left: 10px;">Generate Batch QR</button>
-                </div>
-                <div class="barcode-output" id="qrOutput">
-                    <p>Enter an asset code to generate QR code</p>
-                    <p><small>QR codes can be scanned by any smartphone to quickly access asset information</small></p>
-                </div>
-                <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
-                    <strong>QR Code Benefits:</strong>
-                    <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Higher data capacity than traditional barcodes</li>
-                        <li>Can be read by any smartphone camera</li>
-                        <li>Error correction ensures reliable scanning</li>
-                        <li>Can link directly to asset management system</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Audit Trail -->
-            <div class="audit-trail" id="auditTab" style="display: none;">
-                <h2 class="section-title">📋 Asset Audit Trail & Relocation Tracking</h2>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                    <select id="auditLocationFilter" class="calc-input">
-                        <option value="">All Locations</option>
-                        <option value="CEO Office">CEO Office</option>
-                        <option value="Laundry Department">Laundry Department</option>
-                        <option value="General Stores Department">General Stores Department</option>
-                        <option value="Radiology Department">Radiology Department</option>
-                        <option value="Emergency Department">Emergency Department</option>
-                        <option value="Surgical Department">Surgical Department</option>
-                    </select>
-                    <select id="auditActionFilter" class="calc-input">
-                        <option value="">All Actions</option>
-                        <option value="relocation">Asset Relocation</option>
-                        <option value="maintenance">Maintenance</option>
-                        <option value="status_change">Status Change</option>
-                        <option value="damage">Damage Report</option>
-                        <option value="disposal">Asset Disposal</option>
-                    </select>
-                    <input type="date" id="auditDateFrom" class="calc-input" placeholder="From Date">
-                    <input type="date" id="auditDateTo" class="calc-input" placeholder="To Date">
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <button class="search-btn" onclick="loadAssetAuditTrail()">Load Audit Trail</button>
-                    <button class="search-btn" onclick="refreshAuditData()" style="margin-left: 10px;">Refresh Data</button>
-                    <button class="search-btn" onclick="addAuditEntry()" style="margin-left: 10px;">Add New Entry</button>
-                </div>
-
-                <div id="auditEntries">
-                    <div class="loading">
-                        <p>Loading asset audit trail and relocation data...</p>
-                        <p>This will fetch all asset movements, location changes, and maintenance records from the spreadsheet.</p>
-                    </div>
-                </div>
-
-                <div style="margin-top: 20px;">
-                    <button class="search-btn" onclick="exportAuditTrail()">Export Audit Trail</button>
-                    <button class="search-btn" onclick="generateAssetRelocationReport()" style="margin-left: 10px;">Asset Relocation Report</button>
-                </div>
-
-                <!-- Add New Audit Entry Modal (Hidden by default) -->
-                <div id="auditEntryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000;">
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-card); padding: 30px; border-radius: 12px; width: 90%; max-width: 600px; color: var(--text-primary);">
-                        <h3>Add New Audit Entry</h3>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
-                            <input type="text" id="newAuditAssetCode" class="calc-input" placeholder="Asset Code">
-                            <select id="newAuditAction" class="calc-input">
-                                <option value="relocation">Asset Relocation</option>
-                                <option value="maintenance">Maintenance</option>
-                                <option value="status_change">Status Change</option>
-                                <option value="damage">Damage Report</option>
-                                <option value="disposal">Asset Disposal</option>
-                            </select>
-                            <input type="text" id="newAuditFromLocation" class="calc-input" placeholder="From Location">
-                            <input type="text" id="newAuditToLocation" class="calc-input" placeholder="To Location">
-                            <input type="number" id="newAuditQuantity" class="calc-input" placeholder="Quantity" value="1">
-                            <input type="text" id="newAuditUser" class="calc-input" placeholder="User/Staff Name">
-                        </div>
-                        <textarea id="newAuditNotes" class="calc-input" placeholder="Additional Notes" style="width: 100%; height: 80px; grid-column: 1 / -1;"></textarea>
-                        <div style="margin-top: 20px; text-align: right;">
-                            <button class="clear-btn" onclick="closeAuditModal()">Cancel</button>
-                            <button class="search-btn" onclick="saveAuditEntry()" style="margin-left: 10px;">Save Entry</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Print Reports -->
-            <div class="print-section" id="printTab" style="display: none;">
-                <h2 class="section-title">🖨️ Print Asset Reports</h2>
-                <div class="print-options">
-                    <button class="print-btn" onclick="printReport('summary')">📄 Summary Report</button>
-                    <button class="print-btn" onclick="printReport('detailed')">📋 Detailed Inventory</button>
-                    <button class="print-btn" onclick="printReport('warranty')">🛡️ Warranty Report</button>
-                    <button class="print-btn" onclick="printReport('valuation')">💰 Asset Valuation</button>
-                </div>
-                <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                    <h4>Print Options:</h4>
-                    <label><input type="checkbox" id="includeCharts"> Include Charts</label><br>
-                    <label><input type="checkbox" id="includeLogos" checked> Include Hospital Logo</label><br>
-                    <label><input type="checkbox" id="includeTimestamp" checked> Include Timestamp</label>
-                </div>
-            </div>
-
-            <div class="footer">
-                <p>Fixed Asset Management System © 2024 • May Pen Hospital</p>
             </div>
         </div>
     </div>
 
-    <button class="export-btn" onclick="exportData()">📥 Export</button>
-
     <script>
-        // ============================================
-        // 🔧 CONFIGURATION
-        // ============================================
-        const SHEET_CONFIG = {
-            purchasedSheetId: '1_E2HAksHtZNVbK9svt9mfTmkLS3DCpgzS_RmLqrifL4',
-            donatedSheetId: '1hsaDm-WlOB6HUAh5CDjCbdl2YZnQ8QuX-_viP21Vkzs'
-        };
-        
-        // ============================================
-        // GLOBAL VARIABLES
-        // ============================================
-        let purchasedData = {};
-        let donatedData = {};
-        let allAssetsData = [];
-        let filteredData = [];
-        let relocationData = [];
-        let filteredAssetLocationData = [];
-        let currentView = 'all';
-        let currentAssetLocationView = 'all';
-        let distributionChart = null;
-        let monthlyChart = null;
-        const months = ['APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC', 'JAN', 'FEB', 'MAR'];
+        // Global variables
+        let peer = null;
+        let myPeerId = null;
+        let localStream = null;
+        let userName = '';
+        let roomId = '';
+        let connections = {};
+        let dataConnections = {};
+        let isMuted = false;
+        let isCameraOff = false;
+        let isScreenSharing = false;
+        let screenStream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isRecording = false;
 
-        window.onload = function() {
-            initializeCharts();
-            loadData();
-            loadNightModePreference();
-        };
+        // Join session
+        async function joinSession() {
+            userName = document.getElementById('userName').value.trim();
+            roomId = document.getElementById('roomId').value.trim().toUpperCase();
 
-        // ============================================
-        // NIGHT MODE FUNCTIONS
-        // ============================================
-        
-        let nightModeEnabled = false;
-
-        function toggleNightMode() {
-            nightModeEnabled = !nightModeEnabled;
-            document.body.classList.toggle('dark-mode');
-            
-            const icon = document.getElementById('nightModeIcon');
-            icon.textContent = nightModeEnabled ? '☀️' : '🌙';
-            
-            console.log('Night mode:', nightModeEnabled ? 'enabled' : 'disabled');
-        }
-
-        function loadNightModePreference() {
-            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                nightModeEnabled = true;
-                document.body.classList.add('dark-mode');
-                document.getElementById('nightModeIcon').textContent = '☀️';
-            }
-        }
-
-        function showPage(pageNum) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById('page' + pageNum).classList.add('active');
-            
-            if (pageNum === 2) {
-                displayMonthlyBreakdown();
-            } else if (pageNum === 4) {
-                loadAssetLocationData();
-            }
-        }
-
-        // ============================================
-        // NEW FEATURES FUNCTIONS
-        // ============================================
-        
-        function switchTab(tabName, button) {
-            document.querySelectorAll('[id$="Tab"]').forEach(tab => tab.style.display = 'none');
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(tabName + 'Tab').style.display = 'block';
-            button.classList.add('active');
-            
-            if (tabName === 'warranty') {
-                updateWarrantyStatus();
-            } else if (tabName === 'audit') {
-                loadAssetAuditTrail();
-            }
-        }
-
-        function calculateDepreciation() {
-            const cost = parseFloat(document.getElementById('assetCost').value);
-            const life = parseFloat(document.getElementById('usefulLife').value);
-            const salvage = parseFloat(document.getElementById('salvageValue').value) || 0;
-            const method = document.getElementById('depreciationMethod').value;
-            
-            if (!cost || !life) {
-                alert('Please enter asset cost and useful life');
-                return;
-            }
-            
-            let result = '';
-            
-            if (method === 'straight') {
-                const annualDepreciation = (cost - salvage) / life;
-                const monthlyDepreciation = annualDepreciation / 12;
-                
-                result = `
-                    <p><strong>Straight Line Depreciation:</strong></p>
-                    <p>Annual Depreciation: JMD ${formatCurrency(annualDepreciation)}</p>
-                    <p>Monthly Depreciation: JMD ${formatCurrency(monthlyDepreciation)}</p>
-                    <p>Book Value after ${life} years: JMD ${formatCurrency(salvage)}</p>
-                `;
-            } else {
-                const rate = 2 / life;
-                let bookValue = cost;
-                const yearlyDepreciation = [];
-                
-                for (let year = 1; year <= life; year++) {
-                    const depreciation = Math.min(bookValue * rate, bookValue - salvage);
-                    yearlyDepreciation.push(depreciation);
-                    bookValue -= depreciation;
-                }
-                
-                result = `
-                    <p><strong>Declining Balance Depreciation:</strong></p>
-                    <p>Depreciation Rate: ${(rate * 100).toFixed(1)}%</p>
-                    <p>Year 1 Depreciation: JMD ${formatCurrency(yearlyDepreciation[0])}</p>
-                    <p>Final Book Value: JMD ${formatCurrency(bookValue)}</p>
-                `;
-            }
-            
-            document.getElementById('depreciationDetails').innerHTML = result;
-            document.getElementById('depreciationResult').style.display = 'block';
-        }
-
-        function generateWarrantyReport() {
-            const wb = XLSX.utils.book_new();
-            const warrantyData = [
-                ['Asset Code', 'Description', 'Warranty Start', 'Warranty End', 'Status', 'Days Remaining'],
-                ['MPH001', 'MRI Machine', '2023-01-01', '2025-12-31', 'Active', '453'],
-                ['MPH045', 'Ultrasound Unit', '2023-03-15', '2025-03-15', 'Expiring Soon', '127'],
-                ['MPH023', 'X-Ray Machine', '2022-08-10', '2024-08-10', 'Expired', '-59']
-            ];
-            
-            const ws = XLSX.utils.aoa_to_sheet(warrantyData);
-            XLSX.utils.book_append_sheet(wb, ws, 'Warranty Report');
-            XLSX.writeFile(wb, `Warranty_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
-        }
-
-        function updateWarrantyStatus() {
-            if (!allAssetsData || allAssetsData.length === 0) {
-                document.getElementById('warrantyList').innerHTML = `
-                    <div class="loading">
-                        <p>Please load asset data first by going to the main dashboard.</p>
-                    </div>
-                `;
+            if (!userName) {
+                alert('Please enter your name');
                 return;
             }
 
-            const warrantyList = document.getElementById('warrantyList');
-            const showAll = document.getElementById('showAllAssets').checked;
-            const showExpiringOnly = document.getElementById('showExpiringOnly').checked;
-            
-            const purchasedAssets = allAssetsData.filter(asset => asset.source === 'Purchased');
-            
-            let html = '';
-            let assetCount = 0;
-            
-            purchasedAssets.forEach(asset => {
-                const relocationInfo = relocationData.find(rel => rel.assetCode === asset.assetCode);
-                const assetLocation = relocationInfo ? relocationInfo.assetLocation : asset.supplier || 'Location not specified';
-                
-                const purchaseDate = new Date(asset.dateIn);
-                const warrantyEndDate = new Date(purchaseDate);
-                warrantyEndDate.setFullYear(warrantyEndDate.getFullYear() + 2);
-                
-                const today = new Date();
-                const daysRemaining = Math.ceil((warrantyEndDate - today) / (1000 * 60 * 60 * 24));
-                
-                let status = '';
-                let statusClass = '';
-                
-                if (daysRemaining > 90) {
-                    status = 'Active';
-                    statusClass = 'active';
-                } else if (daysRemaining > 0) {
-                    status = 'Expiring Soon';
-                    statusClass = 'expiring';
-                } else {
-                    status = 'Expired';
-                    statusClass = 'expired';
-                }
-                
-                if (showExpiringOnly && statusClass === 'active') return;
-                if (!showAll && assetCount >= 20) return;
-                
-                html += `
-                    <div class="warranty-item">
-                        <div>
-                            <strong>${asset.description} - ${asset.assetCode}</strong><br>
-                            <small>Purchase Date: ${asset.dateIn} | Warranty expires: ${warrantyEndDate.toLocaleDateString()}</small><br>
-                            <small>Current Location: <strong>${assetLocation}</strong> | Value: JMD ${formatCurrency(asset.totalPrice)}</small><br>
-                            <small>${daysRemaining > 0 ? daysRemaining + ' days remaining' : Math.abs(daysRemaining) + ' days expired'}</small>
-                        </div>
-                        <span class="warranty-status ${statusClass}">${status}</span>
-                    </div>
-                `;
-                assetCount++;
-            });
-            
-            if (html === '') {
-                html = '<p style="text-align: center; color: #7f8c8d; padding: 20px;">No assets match the current filter criteria.</p>';
-            }
-            
-            warrantyList.innerHTML = html;
-        }
-
-        function loadAssetLocationData() {
-            if (!relocationData || relocationData.length === 0) {
-                document.getElementById('assetLocationTableContainer').innerHTML = `
-                    <div class="loading">
-                        <p>Please load asset data first from the main dashboard.</p>
-                        <p>Asset location data will be fetched from columns N, O, P, Q (Date-Out, Qty-Out, Asset Location, Asset Code).</p>
-                    </div>
-                `;
+            if (!roomId) {
+                alert('Please enter a room code');
                 return;
             }
-            
-            updateAssetLocationKPIs();
-            displayAssetLocationTable();
-        }
 
-        function updateAssetLocationKPIs() {
-            const totalLocationRecords = relocationData.length;
-            const totalQuantityOut = relocationData.reduce((sum, item) => sum + item.qtyOut, 0);
-            
-            const uniqueLocations = [...new Set(relocationData.map(item => item.assetLocation).filter(loc => loc && loc.trim() !== ''))].length;
-            
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            const recentPlacements = relocationData.filter(item => {
-                const itemDate = new Date(item.dateOut);
-                return itemDate >= thirtyDaysAgo;
-            }).length;
-            
-            document.getElementById('totalAssetLocations').textContent = totalLocationRecords.toLocaleString();
-            document.getElementById('totalQuantityOut').textContent = totalQuantityOut.toLocaleString();
-            document.getElementById('uniqueActiveLocations').textContent = uniqueLocations.toLocaleString();
-            document.getElementById('recentPlacements').textContent = recentPlacements.toLocaleString();
-        }
+            // Show loading
+            document.getElementById('joinBtn').disabled = true;
+            document.getElementById('loadingIndicator').classList.add('show');
 
-        function displayAssetLocationTable() {
-            const container = document.getElementById('assetLocationTableContainer');
-            
-            if (filteredAssetLocationData.length === 0) {
-                container.innerHTML = '<div class="loading">No asset location data to display</div>';
-                return;
-            }
-            
-            const filteredCount = filteredAssetLocationData.length;
-            const filteredQuantity = filteredAssetLocationData.reduce((sum, item) => sum + item.qtyOut, 0);
-            
-            document.getElementById('filteredLocationCount').textContent = filteredCount.toLocaleString();
-            document.getElementById('filteredLocationQuantity').textContent = filteredQuantity.toLocaleString();
-            
-            let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date-Out</th>
-                            <th>Qty-Out</th>
-                            <th>Asset Location</th>
-                            <th>Asset Code</th>
-                            <th>Month</th>
-                            <th>Source</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            filteredAssetLocationData.forEach(item => {
-                html += `
-                    <tr>
-                        <td>${item.dateOut}</td>
-                        <td><strong style="color: var(--primary-orange);">${item.qtyOut}</strong></td>
-                        <td><strong style="color: var(--primary-green);">${item.assetLocation}</strong></td>
-                        <td><span class="asset-code">${item.assetCode}</span></td>
-                        <td>${item.month}</td>
-                        <td>${item.source}</td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        function filterAssetLocationData() {
-            const dateFrom = document.getElementById('assetLocationDateFrom').value;
-            const dateTo = document.getElementById('assetLocationDateTo').value;
-            const locationFilter = document.getElementById('assetLocationFilter').value.toLowerCase();
-            const assetCodeFilter = document.getElementById('assetLocationCodeFilter').value.toLowerCase();
-            
-            filteredAssetLocationData = relocationData.filter(item => {
-                let matchDate = true;
-                let matchLocation = true;
-                let matchAssetCode = true;
-                
-                if (dateFrom) {
-                    const itemDate = new Date(item.dateOut);
-                    const filterDateFrom = new Date(dateFrom);
-                    matchDate = itemDate >= filterDateFrom;
-                }
-                
-                if (dateTo && matchDate) {
-                    const itemDate = new Date(item.dateOut);
-                    const filterDateTo = new Date(dateTo);
-                    matchDate = itemDate <= filterDateTo;
-                }
-                
-                if (locationFilter) {
-                    matchLocation = item.assetLocation.toLowerCase().includes(locationFilter);
-                }
-                
-                if (assetCodeFilter) {
-                    matchAssetCode = item.assetCode.toLowerCase().includes(assetCodeFilter);
-                }
-                
-                return matchDate && matchLocation && matchAssetCode;
-            });
-            
-            displayAssetLocationTable();
-        }
-
-        function clearAssetLocationFilters() {
-            document.getElementById('assetLocationDateFrom').value = '';
-            document.getElementById('assetLocationDateTo').value = '';
-            document.getElementById('assetLocationFilter').value = '';
-            document.getElementById('assetLocationCodeFilter').value = '';
-            filteredAssetLocationData = relocationData;
-            displayAssetLocationTable();
-        }
-
-        function switchAssetLocationView(view, button) {
-            currentAssetLocationView = view;
-            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            const today = new Date();
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            
-            if (view === 'all') {
-                filteredAssetLocationData = relocationData;
-            } else if (view === 'purchased') {
-                filteredAssetLocationData = relocationData.filter(item => item.source === 'Purchased');
-            } else if (view === 'donated') {
-                filteredAssetLocationData = relocationData.filter(item => item.source === 'Donated');
-            } else if (view === 'recent') {
-                filteredAssetLocationData = relocationData.filter(item => {
-                    const itemDate = new Date(item.dateOut);
-                    return itemDate >= thirtyDaysAgo;
-                });
-            }
-            
-            displayAssetLocationTable();
-        }
-
-        function updateWarrantyDisplay() {
-            updateWarrantyStatus();
-        }
-
-        function generateQRCode() {
-            const assetCode = document.getElementById('qrAssetCode').value;
-            const format = document.getElementById('qrDataFormat').value;
-            
-            if (!assetCode) {
-                alert('Please enter an asset code');
-                return;
-            }
-            
-            const asset = allAssetsData.find(item => item.assetCode.toLowerCase() === assetCode.toLowerCase());
-            
-            let qrData = assetCode;
-            let displayInfo = `<p><strong>Asset Code:</strong> ${assetCode}</p>`;
-            
-            if (asset) {
-                switch(format) {
-                    case 'detailed':
-                        qrData = `${asset.assetCode}: ${asset.description}`;
-                        displayInfo += `<p><strong>Description:</strong> ${asset.description}</p>`;
-                        break;
-                    case 'full':
-                        qrData = JSON.stringify({
-                            code: asset.assetCode,
-                            desc: asset.description,
-                            value: asset.totalPrice,
-                            location: asset.supplier,
-                            date: asset.dateIn
-                        });
-                        displayInfo += `
-                            <p><strong>Description:</strong> ${asset.description}</p>
-                            <p><strong>Value:</strong> JMD ${formatCurrency(asset.totalPrice)}</p>
-                            <p><strong>Source:</strong> ${asset.source}</p>
-                        `;
-                        break;
-                    case 'url':
-                        qrData = `https://maypen-hospital.assets.jm/asset/${assetCode}`;
-                        displayInfo += `<p><strong>Asset URL:</strong> ${qrData}</p>`;
-                        break;
-                    default:
-                        qrData = assetCode;
-                }
-            }
-            
-            const qrOutput = document.getElementById('qrOutput');
-            qrOutput.innerHTML = `
-                <div style="display: flex; justify-content: center; margin: 20px 0;">
-                    <div style="width: 200px; height: 200px; background: black; display: grid; grid-template-columns: repeat(25, 1fr); grid-template-rows: repeat(25, 1fr); gap: 1px;">
-                        ${generateQRPattern()}
-                    </div>
-                </div>
-                ${displayInfo}
-                <p><strong>QR Data:</strong> ${qrData.length > 50 ? qrData.substring(0, 50) + '...' : qrData}</p>
-                <div style="margin-top: 15px;">
-                    <button class="search-btn" onclick="printQRCode('${assetCode}', '${qrData}')">Print QR Code</button>
-                    <button class="search-btn" onclick="downloadQRData('${assetCode}', '${qrData}')" style="margin-left: 10px;">Download QR Data</button>
-                </div>
-            `;
-        }
-
-        function generateQRPattern() {
-            const pattern = [];
-            for (let i = 0; i < 625; i++) {
-                const isBlack = Math.random() > 0.5;
-                pattern.push(`<div style="background: ${isBlack ? 'black' : 'white'};"></div>`);
-            }
-            return pattern.join('');
-        }
-
-        function generateBatchQR() {
-            if (!allAssetsData || allAssetsData.length === 0) {
-                alert('Please load asset data first');
-                return;
-            }
-            
-            const batchSize = parseInt(prompt('How many QR codes to generate? (Max 50)', '10'));
-            if (!batchSize || batchSize > 50) return;
-            
-            const assets = allAssetsData.slice(0, batchSize);
-            let batchHTML = '<h3>Batch QR Code Generation</h3>';
-            
-            assets.forEach((asset, index) => {
-                batchHTML += `
-                    <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px;">
-                        <strong>${asset.assetCode}</strong> - ${asset.description}
-                        <div style="margin: 10px 0;">QR Code would be generated here</div>
-                    </div>
-                `;
-            });
-            
-            batchHTML += `<button class="search-btn" onclick="printBatchQR()">Print All QR Codes</button>`;
-            
-            document.getElementById('qrOutput').innerHTML = batchHTML;
-        }
-
-        function printQRCode(assetCode, qrData) {
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head><title>QR Code - ${assetCode}</title></head>
-                <body style="text-align: center; font-family: Arial, sans-serif;">
-                    <h2>May Pen Hospital</h2>
-                    <h3>Asset QR Code</h3>
-                    <div style="width: 300px; height: 300px; border: 2px solid black; margin: 20px auto; display: flex; align-items: center; justify-content: center; font-size: 12px;">
-                        QR Code for ${assetCode}<br>
-                        <small>Scan with smartphone</small>
-                    </div>
-                    <p style="font-size: 1.2em;"><strong>${assetCode}</strong></p>
-                    <p>Data: ${qrData}</p>
-                    <script>window.print(); window.close();<\/script>
-                </body>
-                </html>
-            `);
-        }
-
-        function downloadQRData(assetCode, qrData) {
-            const csvContent = `Asset Code,QR Data\n"${assetCode}","${qrData}"`;
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `QR_Data_${assetCode}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
-
-        function loadAssetAuditTrail() {
-            const auditEntries = document.getElementById('auditEntries');
-            
-            if (!allAssetsData || allAssetsData.length === 0) {
-                auditEntries.innerHTML = `
-                    <div class="loading">
-                        <p>Please load asset data first by going to the main dashboard.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            let html = '';
-            let entryCount = 0;
-            
-            allAssetsData.forEach(asset => {
-                if (entryCount >= 20) return;
-                
-                html += `
-                    <div class="audit-entry">
-                        <div class="audit-timestamp">${new Date().toLocaleString()}</div>
-                        <strong>Asset ${asset.assetCode} - ${asset.description}</strong><br>
-                        Action: Asset assigned to location<br>
-                        User: System Admin<br>
-                        Location: ${asset.supplier || 'Various Departments'}<br>
-                        Value: JMD ${formatCurrency(asset.totalPrice)}
-                    </div>
-                `;
-                entryCount++;
-            });
-            
-            if (html === '') {
-                html = '<p style="text-align: center; color: #7f8c8d; padding: 20px;">No audit trail entries found.</p>';
-            }
-            
-            auditEntries.innerHTML = html;
-        }
-
-        function refreshAuditData() {
-            loadAssetAuditTrail();
-        }
-
-        function addAuditEntry() {
-            document.getElementById('auditEntryModal').style.display = 'block';
-        }
-
-        function closeAuditModal() {
-            document.getElementById('auditEntryModal').style.display = 'none';
-        }
-
-        function saveAuditEntry() {
-            const assetCode = document.getElementById('newAuditAssetCode').value;
-            const action = document.getElementById('newAuditAction').value;
-            const fromLocation = document.getElementById('newAuditFromLocation').value;
-            const toLocation = document.getElementById('newAuditToLocation').value;
-            const quantity = document.getElementById('newAuditQuantity').value;
-            const user = document.getElementById('newAuditUser').value;
-            const notes = document.getElementById('newAuditNotes').value;
-            
-            if (!assetCode || !action || !user) {
-                alert('Please fill in required fields: Asset Code, Action, and User');
-                return;
-            }
-            
-            alert('Audit entry saved successfully!\n\nNote: In the full implementation, this would be saved to your Google Sheets.');
-            
-            document.getElementById('newAuditAssetCode').value = '';
-            document.getElementById('newAuditFromLocation').value = '';
-            document.getElementById('newAuditToLocation').value = '';
-            document.getElementById('newAuditQuantity').value = '1';
-            document.getElementById('newAuditUser').value = '';
-            document.getElementById('newAuditNotes').value = '';
-            
-            closeAuditModal();
-            loadAssetAuditTrail();
-        }
-
-        function generateAssetRelocationReport() {
-            const auditData = [
-                ['Date', 'Asset Code', 'Description', 'Action', 'From Location', 'To Location', 'Quantity', 'User', 'Notes'],
-                [new Date().toLocaleDateString(), 'MPH-001-2025', 'MRI Machine', 'Relocation', 'Storage', 'Radiology', '1', 'Dr. Smith', 'Scheduled maintenance complete'],
-                [new Date().toLocaleDateString(), 'MPH-002-2025', 'Ultrasound Unit', 'Relocation', 'Emergency', 'Cardiology', '1', 'Nurse Johnson', 'Moved for cardiac procedures'],
-                [new Date().toLocaleDateString(), 'MPH-003-2025', 'X-Ray Machine', 'Maintenance', 'Radiology', 'Radiology', '1', 'Tech Support', 'Annual calibration']
-            ];
-            
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(auditData);
-            XLSX.utils.book_append_sheet(wb, ws, 'Asset Relocations');
-            XLSX.writeFile(wb, `Asset_Relocations_${new Date().toISOString().split('T')[0]}.xlsx`);
-        }
-
-        function exportAuditTrail() {
-            const auditData = [
-                ['Timestamp', 'Asset Code', 'Action', 'User', 'Details'],
-                ['2024-10-08 14:30:00', 'MPH001', 'Status Update', 'Dr. Smith', 'Status updated to "In Use"'],
-                ['2024-10-07 09:15:00', 'MPH045', 'Maintenance', 'Tech Support', 'Annual calibration performed'],
-                ['2024-10-06 16:45:00', 'MPH023', 'Location Change', 'Admin', 'From Storage to Emergency Department']
-            ];
-            
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(auditData);
-            XLSX.utils.book_append_sheet(wb, ws, 'Audit Trail');
-            XLSX.writeFile(wb, `Audit_Trail_${new Date().toISOString().split('T')[0]}.xlsx`);
-        }
-
-        function printReport(reportType) {
-            const includeCharts = document.getElementById('includeCharts').checked;
-            const includeLogos = document.getElementById('includeLogos').checked;
-            const includeTimestamp = document.getElementById('includeTimestamp').checked;
-            
-            let reportContent = '';
-            
-            switch(reportType) {
-                case 'summary':
-                    reportContent = generateSummaryReport();
-                    break;
-                case 'detailed':
-                    reportContent = generateDetailedReport();
-                    break;
-                case 'warranty':
-                    reportContent = generateWarrantyPrintReport();
-                    break;
-                case 'valuation':
-                    reportContent = generateValuationReport();
-                    break;
-            }
-            
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report - May Pen Hospital</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; margin: 20px; }
-                        .header { text-align: center; border-bottom: 3px solid #FF6B35; padding-bottom: 20px; margin-bottom: 30px; }
-                        .logo { font-size: 1.5em; color: #FF6B35; font-weight: bold; }
-                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                        th { background-color: #2ECC71; color: white; }
-                        .timestamp { text-align: right; font-size: 0.9em; color: #666; }
-                        @media print { .no-print { display: none; } }
-                    </style>
-                </head>
-                <body>
-                    <div class="header">
-                        ${includeLogos ? '<div class="logo">🏥 May Pen Hospital</div>' : ''}
-                        <h1>${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report</h1>
-                        <h2>Fixed Asset Management System</h2>
-                        ${includeTimestamp ? `<div class="timestamp">Generated: ${new Date().toLocaleString()}</div>` : ''}
-                    </div>
-                    ${reportContent}
-                    <script>window.print();<\/script>
-                </body>
-                </html>
-            `);
-        }
-
-        function generateSummaryReport() {
-            const totalItems = (purchasedData.totals?.totalItems || 0) + (donatedData.totals?.totalItems || 0);
-            const totalValue = (purchasedData.totals?.totalValue || 0) + (donatedData.totals?.totalValue || 0);
-            
-            return `
-                <h3>Asset Summary</h3>
-                <table>
-                    <tr><th>Metric</th><th>Value</th></tr>
-                    <tr><td>Total Assets</td><td>${totalItems.toLocaleString()}</td></tr>
-                    <tr><td>Total Value</td><td>JMD ${formatCurrency(totalValue)}</td></tr>
-                    <tr><td>Purchased Assets</td><td>${(purchasedData.totals?.totalItems || 0).toLocaleString()}</td></tr>
-                    <tr><td>Donated Assets</td><td>${(donatedData.totals?.totalItems || 0).toLocaleString()}</td></tr>
-                </table>
-            `;
-        }
-
-        function generateDetailedReport() {
-            let tableRows = '';
-            filteredData.slice(0, 50).forEach(item => {
-                tableRows += `
-                    <tr>
-                        <td>${item.assetCode}</td>
-                        <td>${item.description}</td>
-                        <td>${item.category}</td>
-                        <td>JMD ${formatCurrency(item.totalPrice)}</td>
-                        <td>${item.source}</td>
-                    </tr>
-                `;
-            });
-            
-            return `
-                <h3>Detailed Asset Inventory (Top 50)</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Asset Code</th>
-                            <th>Description</th>
-                            <th>Category</th>
-                            <th>Value</th>
-                            <th>Source</th>
-                        </tr>
-                    </thead>
-                    <tbody>${tableRows}</tbody>
-                </table>
-            `;
-        }
-
-        function generateWarrantyPrintReport() {
-            return `
-                <h3>Warranty Status Report</h3>
-                <table>
-                    <tr><th>Asset Code</th><th>Description</th><th>Warranty End</th><th>Status</th></tr>
-                    <tr><td>MPH001</td><td>MRI Machine</td><td>2025-12-31</td><td>Active</td></tr>
-                    <tr><td>MPH045</td><td>Ultrasound Unit</td><td>2025-03-15</td><td>Expiring Soon</td></tr>
-                    <tr><td>MPH023</td><td>X-Ray Machine</td><td>2024-08-10</td><td>Expired</td></tr>
-                </table>
-            `;
-        }
-
-        function generateValuationReport() {
-            const totalValue = (purchasedData.totals?.totalValue || 0) + (donatedData.totals?.totalValue || 0);
-            const medicalValue = (purchasedData.totals?.medicalValue || 0) + (donatedData.totals?.medicalValue || 0);
-            const furnitureValue = (purchasedData.totals?.furnitureValue || 0) + (donatedData.totals?.furnitureValue || 0);
-            
-            return `
-                <h3>Asset Valuation Report</h3>
-                <table>
-                    <tr><th>Category</th><th>Value (JMD)</th><th>Percentage</th></tr>
-                    <tr><td>Medical Equipment</td><td>${formatCurrency(medicalValue)}</td><td>${((medicalValue/totalValue)*100).toFixed(1)}%</td></tr>
-                    <tr><td>Furniture & Appliances</td><td>${formatCurrency(furnitureValue)}</td><td>${((furnitureValue/totalValue)*100).toFixed(1)}%</td></tr>
-                    <tr><th>Total</th><th>${formatCurrency(totalValue)}</th><th>100%</th></tr>
-                </table>
-            `;
-        }
-
-        // ============================================
-        // DATA LOADING & PROCESSING - ENHANCED
-        // ============================================
-        
-        async function loadData() {
-            const purchasedId = SHEET_CONFIG.purchasedSheetId;
-            const donatedId = SHEET_CONFIG.donatedSheetId;
-            
-            if (!purchasedId || !donatedId || 
-                purchasedId === 'YOUR_PURCHASED_SHEET_ID_HERE' || 
-                donatedId === 'YOUR_DONATED_SHEET_ID_HERE') {
-                updateStatus('error', 'Configuration needed');
-                document.getElementById('tableContainer').innerHTML = `
-                    <div class="error-box">
-                        <h4>⚙️ Setup Required</h4>
-                        <p>You need to "Publish to Web" instead of just sharing. This bypasses CORS issues.</p>
-                        <ol>
-                            <li>Open your Google Sheet</li>
-                            <li>Go to <strong>File → Share → Publish to web</strong></li>
-                            <li>Select <strong>"Entire Document"</strong></li>
-                            <li>Choose <strong>"Web page"</strong> format</li>
-                            <li>Click <strong>"Publish"</strong></li>
-                            <li>Copy the Sheet ID from the URL</li>
-                            <li>Paste it into this HTML file at SHEET_CONFIG</li>
-                        </ol>
-                        <p style="margin-top: 15px;"><strong>Note:</strong> "Publish to web" is MORE reliable than just "Share" for automatic fetching.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            updateStatus('loading', 'Fetching from Google Sheets with enhanced accuracy...');
-            console.log('Attempting to load data with enhanced processing...');
-            console.log('Purchased ID:', purchasedId);
-            console.log('Donated ID:', donatedId);
-            
             try {
-                await loadWithCORSProxy(purchasedId, donatedId);
-            } catch (error) {
-                console.error('All fetch methods failed:', error);
-                updateStatus('error', 'Unable to fetch data');
-                document.getElementById('tableContainer').innerHTML = `
-                    <div class="error-box">
-                        <h4>❌ Fetch Failed</h4>
-                        <p><strong>Error:</strong> ${error.message}</p>
-                        <h4 style="margin-top: 20px;">💡 Solution: Use "Publish to Web"</h4>
-                        <ol>
-                            <li>Open each Google Sheet</li>
-                            <li><strong>File → Share → Publish to web</strong></li>
-                            <li>Select "Entire Document" + "Web page"</li>
-                            <li>Click "Publish" and confirm</li>
-                            <li>The Sheet ID remains the same</li>
-                            <li>Refresh this page</li>
-                        </ol>
-                        <p style="margin-top: 15px;"><strong>Why?</strong> "Publish to web" creates a public endpoint that doesn't have CORS restrictions, unlike regular sharing.</p>
-                    </div>
-                `;
-            }
-        }
-
-        async function loadWithCORSProxy(purchasedId, donatedId) {
-            const proxies = [
-                (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-                (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-                (url) => url
-            ];
-
-            for (let i = 0; i < proxies.length; i++) {
-                try {
-                    console.log(`Trying proxy method ${i + 1}...`);
-                    const proxy = proxies[i];
-                    
-                    const purchasedUrl = proxy(`https://docs.google.com/spreadsheets/d/${purchasedId}/export?format=xlsx`);
-                    const donatedUrl = proxy(`https://docs.google.com/spreadsheets/d/${donatedId}/export?format=xlsx`);
-                    
-                    const [purchasedResponse, donatedResponse] = await Promise.all([
-                        fetch(purchasedUrl),
-                        fetch(donatedUrl)
-                    ]);
-                    
-                    console.log('Purchased status:', purchasedResponse.status);
-                    console.log('Donated status:', donatedResponse.status);
-                    
-                    if (purchasedResponse.ok && donatedResponse.ok) {
-                        console.log('✓ Fetch successful with proxy', i + 1);
-                        await processResponses(purchasedResponse, donatedResponse);
-                        return;
+                // Request camera and microphone
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
                     }
-                } catch (error) {
-                    console.log(`Proxy ${i + 1} failed:`, error.message);
-                }
-            }
-            
-            throw new Error('All fetch methods failed. Please use "Publish to web" feature (File → Share → Publish to web)');
-        }
-
-        async function processResponses(purchasedResponse, donatedResponse) {
-            const purchasedBlob = await purchasedResponse.blob();
-            const donatedBlob = await donatedResponse.blob();
-            
-            const purchasedArrayBuffer = await purchasedBlob.arrayBuffer();
-            const donatedArrayBuffer = await donatedBlob.arrayBuffer();
-            
-            console.log('Purchased size:', purchasedArrayBuffer.byteLength);
-            console.log('Donated size:', donatedArrayBuffer.byteLength);
-            
-            // Enhanced parsing with accurate numeric conversion
-            const purchasedWorkbook = XLSX.read(purchasedArrayBuffer, { 
-                type: 'array',
-                cellDates: true,
-                cellNF: true,
-                cellStyles: true,
-                raw: false
-            });
-            const donatedWorkbook = XLSX.read(donatedArrayBuffer, { 
-                type: 'array',
-                cellDates: true,
-                cellNF: true,
-                cellStyles: true,
-                raw: false
-            });
-            
-            console.log('Purchased sheets:', purchasedWorkbook.SheetNames);
-            console.log('Donated sheets:', donatedWorkbook.SheetNames);
-            
-            purchasedData = processWorkbook(purchasedWorkbook, 'Purchased');
-            donatedData = processWorkbook(donatedWorkbook, 'Donated');
-            
-            // Perform accurate internal calculations
-            validateAndRecalculateTotals();
-            
-            combineAndDisplayData();
-            updateCharts();
-            
-            updateStatus('connected', 'Data loaded with verified calculations');
-            document.getElementById('lastUpdateText').textContent = `Updated: ${new Date().toLocaleString()}`;
-            
-            console.log('✓ Data processing complete with enhanced accuracy');
-        }
-
-        function validateAndRecalculateTotals() {
-            if (purchasedData.allItems && purchasedData.allItems.length > 0) {
-                purchasedData.totals = calculateAccurateTotals(purchasedData.allItems);
-                console.log('Purchased totals recalculated:', purchasedData.totals);
-            }
-            
-            if (donatedData.allItems && donatedData.allItems.length > 0) {
-                donatedData.totals = calculateAccurateTotals(donatedData.allItems);
-                console.log('Donated totals recalculated:', donatedData.totals);
-            }
-        }
-
-        function calculateAccurateTotals(items) {
-            const totals = {
-                totalValue: 0,
-                totalItems: 0,
-                medicalEquipment: 0,
-                medicalValue: 0,
-                furniture: 0,
-                furnitureValue: 0
-            };
-            
-            items.forEach(item => {
-                const itemTotal = parseFloat(item.totalPrice) || 0;
-                
-                totals.totalItems++;
-                totals.totalValue += itemTotal;
-                
-                if (item.category === 'Medical Equipment') {
-                    totals.medicalEquipment++;
-                    totals.medicalValue += itemTotal;
-                } else {
-                    totals.furniture++;
-                    totals.furnitureValue += itemTotal;
-                }
-            });
-            
-            totals.totalValue = Math.round(totals.totalValue * 100) / 100;
-            totals.medicalValue = Math.round(totals.medicalValue * 100) / 100;
-            totals.furnitureValue = Math.round(totals.furnitureValue * 100) / 100;
-            
-            return totals;
-        }
-
-        function processWorkbook(workbook, sourceType) {
-            const processedData = {
-                monthly: {},
-                allItems: [],
-                relocationItems: [],
-                totals: {
-                    totalValue: 0,
-                    totalItems: 0,
-                    medicalEquipment: 0,
-                    medicalValue: 0,
-                    furniture: 0,
-                    furnitureValue: 0
-                }
-            };
-            
-            console.log(`Processing ${sourceType} workbook with ${workbook.SheetNames.length} sheets`);
-            
-            months.forEach(month => {
-                if (workbook.Sheets[month]) {
-                    console.log(`Processing sheet: ${month}`);
-                    const sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[month], { 
-                        header: 1, 
-                        raw: true,
-                        defval: ''
-                    });
-                    const monthData = processMonthData(sheetData, month, sourceType);
-                    const relocationDataForMonth = processRelocationData(sheetData, month, sourceType);
-                    
-                    processedData.monthly[month] = monthData;
-                    processedData.allItems = processedData.allItems.concat(monthData.items);
-                    processedData.relocationItems = processedData.relocationItems.concat(relocationDataForMonth);
-                    
-                    processedData.totals.totalItems += monthData.stats.totalItems;
-                    processedData.totals.totalValue += monthData.stats.totalValue;
-                    processedData.totals.medicalEquipment += monthData.stats.medicalEquipment;
-                    processedData.totals.medicalValue += monthData.stats.medicalValue;
-                    processedData.totals.furniture += monthData.stats.furniture;
-                    processedData.totals.furnitureValue += monthData.stats.furnitureValue;
-                } else {
-                    console.log(`Sheet ${month} not found in workbook`);
-                }
-            });
-            
-            if (workbook.Sheets['PIE CHART - END OF YEAR']) {
-                console.log('Processing END OF YEAR sheet');
-                const sheetData = XLSX.utils.sheet_to_json(workbook.Sheets['PIE CHART - END OF YEAR'], { 
-                    header: 1, 
-                    raw: true,
-                    defval: ''
                 });
-                const yearEndData = processMonthData(sheetData, 'END OF YEAR', sourceType);
-                const yearEndRelocationData = processRelocationData(sheetData, 'END OF YEAR', sourceType);
+
+                console.log('Got local stream:', localStream);
+
+                // Initialize PeerJS with cloud server
+                const uniqueId = roomId + '-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
                 
-                processedData.monthly['END OF YEAR'] = yearEndData;
-                processedData.allItems = processedData.allItems.concat(yearEndData.items);
-                processedData.relocationItems = processedData.relocationItems.concat(yearEndRelocationData);
-                
-                processedData.totals.totalItems += yearEndData.stats.totalItems;
-                processedData.totals.totalValue += yearEndData.stats.totalValue;
-                processedData.totals.medicalEquipment += yearEndData.stats.medicalEquipment;
-                processedData.totals.medicalValue += yearEndData.stats.medicalValue;
-                processedData.totals.furniture += yearEndData.stats.furniture;
-                processedData.totals.furnitureValue += yearEndData.stats.furnitureValue;
+                peer = new Peer(uniqueId, {
+                    host: 'trainhub-signal.herokuapp.com',
+                    secure: true,
+                    port: 443,
+                    config: {
+                        iceServers: [
+                            { urls: 'stun:stun.l.google.com:19302' },
+                            { urls: 'stun:stun1.l.google.com:19302' },
+                            { urls: 'stun:stun2.l.google.com:19302' },
+                            { urls: 'stun:stun3.l.google.com:19302' },
+                            { urls: 'stun:stun4.l.google.com:19302' }
+                        ]
+                    }
+                });
+
+                peer.on('open', (id) => {
+                    console.log('Connected with peer ID:', id);
+                    myPeerId = id;
+                    
+                    // Switch to video screen
+                    document.getElementById('setupScreen').style.display = 'none';
+                    document.getElementById('videoScreen').classList.add('show');
+                    document.getElementById('currentRoom').textContent = roomId;
+
+                    // Add own video
+                    addVideoStream(localStream, userName + ' (You)', true);
+                    addParticipant(userName + ' (You)');
+                    addChatMessage('System', 'You joined the session', true);
+
+                    // Announce presence
+                    announceToRoom();
+                    
+                    // Listen for new connections every 2 seconds
+                    setInterval(announceToRoom, 2000);
+                });
+
+                peer.on('call', (call) => {
+                    console.log('Receiving call from:', call.peer);
+                    call.answer(localStream);
+                    
+                    call.on('stream', (remoteStream) => {
+                        console.log('Received remote stream');
+                        const remoteName = call.metadata?.name || 'Participant';
+                        addVideoStream(remoteStream, remoteName, false, call.peer);
+                    });
+
+                    call.on('close', () => {
+                        console.log('Call closed:', call.peer);
+                        removeVideoStream(call.peer);
+                    });
+
+                    connections[call.peer] = call;
+                });
+
+                peer.on('connection', (conn) => {
+                    console.log('Data connection from:', conn.peer);
+                    setupDataConnection(conn);
+                });
+
+                peer.on('error', (err) => {
+                    console.error('Peer error:', err);
+                    alert('Connection error. Please try again.');
+                    location.reload();
+                });
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Could not access camera/microphone. Please ensure you have granted permissions and try again.');
+                document.getElementById('joinBtn').disabled = false;
+                document.getElementById('loadingIndicator').classList.remove('show');
             }
-            
-            console.log(`${sourceType} Summary:`, {
-                totalItems: processedData.totals.totalItems,
-                totalValue: processedData.totals.totalValue,
-                medical: processedData.totals.medicalEquipment,
-                furniture: processedData.totals.furniture
-            });
-            
-            return processedData;
         }
 
-        function processMonthData(rawData, month, sourceType) {
-            let headerRowIndex = -1;
-            
-            // Find header row by looking for "Date-In" in column C (index 2)
-            for (let i = 0; i < Math.min(15, rawData.length); i++) {
-                if (rawData[i] && rawData[i][2] && rawData[i][2].toString().toLowerCase().includes('date')) {
-                    headerRowIndex = i;
-                    console.log(`Found header row at index ${i} for month ${month}`);
-                    break;
-                }
-            }
-            
-            if (headerRowIndex === -1) {
-                console.log(`No header found for month ${month}`);
-                return { items: [], stats: { totalItems: 0, totalValue: 0, medicalEquipment: 0, medicalValue: 0, furniture: 0, furnitureValue: 0 } };
-            }
-            
-            const items = [];
-            let stats = {
-                totalItems: 0,
-                totalValue: 0,
-                medicalEquipment: 0,
-                medicalValue: 0,
-                furniture: 0,
-                furnitureValue: 0
+        function announceToRoom() {
+            if (!peer || !myPeerId) return;
+
+            // Store presence in localStorage with timestamp
+            const roomData = JSON.parse(localStorage.getItem('trainhub-' + roomId) || '{}');
+            roomData[myPeerId] = {
+                name: userName,
+                timestamp: Date.now()
             };
             
-            console.log(`Processing ${rawData.length - headerRowIndex - 1} rows for month ${month}`);
+            // Remove old entries (older than 10 seconds)
+            const now = Date.now();
+            Object.keys(roomData).forEach(peerId => {
+                if (now - roomData[peerId].timestamp > 10000 && peerId !== myPeerId) {
+                    delete roomData[peerId];
+                }
+            });
             
-            // Process data rows starting after header
-            for (let i = headerRowIndex + 1; i < rawData.length; i++) {
-                const row = rawData[i];
-                
-                // Check if row has essential data: Date-In (C/2) and Description (E/4)
-                if (row && row[2] && row[4]) {
-                    // CORRECT COLUMN MAPPING based on your sheet structure:
-                    // Column C (index 2): Date-In
-                    // Column D (index 3): Qty-In
-                    // Column E (index 4): Description
-                    // Column F (index 5): Supplier
-                    // Column G (index 6): Item Type
-                    // Column J (index 9): Unit Price
-                    // Column M (index 12): Total Price $
-                    // Column Q (index 16): Asset Code
-                    
-                    const totalPrice = parseAccurateNumber(row[12]); // Column M
-                    const unitPrice = parseAccurateNumber(row[9]);   // Column J
-                    const quantity = parseInt(row[3]) || 1;          // Column D
-                    const itemType = row[6] ? row[6].toString() : ''; // Column G
-                    const isMedical = itemType.toLowerCase().includes('medical');
-                    
-                    // Get Asset Code from Column Q (index 16)
-                    let assetCode = '';
-                    if (row[16] !== null && row[16] !== undefined && row[16] !== '') {
-                        assetCode = String(row[16]).trim();
-                    } else {
-                        // If no asset code, generate a temporary one
-                        assetCode = `${month}-${i}`;
-                    }
-                    
-                    let dateIn = parseAccurateDate(row[2]); // Column C
-                    
-                    const item = {
-                        assetCode: assetCode,
-                        dateIn: dateIn,
-                        quantity: quantity,
-                        description: row[4] || '',  // Column E
-                        supplier: row[5] || '',     // Column F
-                        itemType: itemType,         // Column G
-                        category: isMedical ? 'Medical Equipment' : 'Furniture & Appliances',
-                        serialModel: row[8] || '',  // Column I (Serial/Model)
-                        unitPrice: unitPrice,
-                        totalPrice: totalPrice,
-                        source: sourceType,
-                        month: month
-                    };
-                    
-                    items.push(item);
-                    stats.totalItems++;
-                    stats.totalValue += totalPrice;
-                    
-                    if (isMedical) {
-                        stats.medicalEquipment++;
-                        stats.medicalValue += totalPrice;
-                    } else {
-                        stats.furniture++;
-                        stats.furnitureValue += totalPrice;
-                    }
+            localStorage.setItem('trainhub-' + roomId, JSON.stringify(roomData));
+
+            // Try to connect to all peers in room
+            Object.keys(roomData).forEach(peerId => {
+                if (peerId !== myPeerId && !connections[peerId]) {
+                    connectToPeer(peerId, roomData[peerId].name);
+                }
+            });
+        }
+
+        function connectToPeer(peerId, remoteName) {
+            console.log('Connecting to peer:', peerId);
+
+            // Call with video
+            const call = peer.call(peerId, localStream, {
+                metadata: { name: userName }
+            });
+
+            if (call) {
+                call.on('stream', (remoteStream) => {
+                    console.log('Got stream from:', peerId);
+                    addVideoStream(remoteStream, remoteName, false, peerId);
+                });
+
+                call.on('close', () => {
+                    removeVideoStream(peerId);
+                });
+
+                connections[peerId] = call;
+            }
+
+            // Data connection for chat
+            const conn = peer.connect(peerId, {
+                metadata: { name: userName }
+            });
+            setupDataConnection(conn);
+        }
+
+        function setupDataConnection(conn) {
+            dataConnections[conn.peer] = conn;
+
+            conn.on('open', () => {
+                console.log('Data channel open:', conn.peer);
+                conn.send({
+                    type: 'join',
+                    name: userName
+                });
+            });
+
+            conn.on('data', (data) => {
+                handleData(data, conn.peer);
+            });
+
+            conn.on('close', () => {
+                delete dataConnections[conn.peer];
+            });
+        }
+
+        function handleData(data, peerId) {
+            if (data.type === 'join') {
+                addChatMessage('System', data.name + ' joined the session', true);
+                addParticipant(data.name);
+            } else if (data.type === 'chat') {
+                addChatMessage(data.name, data.message);
+            } else if (data.type === 'leave') {
+                addChatMessage('System', data.name + ' left the session', true);
+                removeParticipant(data.name);
+            }
+        }
+
+        function addVideoStream(stream, name, isLocal, peerId = 'local') {
+            // Check if already exists
+            if (document.getElementById('video-' + peerId)) {
+                return;
+            }
+
+            const videoGrid = document.getElementById('videoGrid');
+            
+            const container = document.createElement('div');
+            container.className = 'video-container';
+            container.id = 'video-' + peerId;
+
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.autoplay = true;
+            video.playsinline = true;
+            if (isLocal) video.muted = true;
+
+            const label = document.createElement('div');
+            label.className = 'video-label';
+            label.textContent = name;
+
+            const recordingBadge = document.createElement('div');
+            recordingBadge.className = 'recording-badge';
+            recordingBadge.textContent = '⏺ REC';
+
+            container.appendChild(video);
+            container.appendChild(label);
+            container.appendChild(recordingBadge);
+            videoGrid.appendChild(container);
+
+            // Ensure video plays
+            video.onloadedmetadata = () => {
+                video.play().catch(e => console.log('Play error:', e));
+            };
+
+            console.log('Added video for:', name);
+        }
+
+        function removeVideoStream(peerId) {
+            const videoElement = document.getElementById('video-' + peerId);
+            if (videoElement) {
+                videoElement.remove();
+            }
+            delete connections[peerId];
+        }
+
+        function addParticipant(name) {
+            const list = document.getElementById('participantList');
+            const badge = document.createElement('div');
+            badge.className = 'participant-badge';
+            badge.textContent = name;
+            badge.id = 'participant-' + name.replace(/\s/g, '-');
+            list.appendChild(badge);
+            updateParticipantCount();
+        }
+
+        function removeParticipant(name) {
+            const badge = document.getElementById('participant-' + name.replace(/\s/g, '-'));
+            if (badge) badge.remove();
+            updateParticipantCount();
+        }
+
+        function updateParticipantCount() {
+            const count = document.getElementById('participantList').children.length;
+            document.getElementById('participantCount').textContent = count;
+        }
+
+        function toggleMic() {
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                if (audioTrack) {
+                    audioTrack.enabled = !audioTrack.enabled;
+                    isMuted = !audioTrack.enabled;
+                    const btn = document.getElementById('micBtn');
+                    btn.classList.toggle('active', isMuted);
+                    btn.innerHTML = isMuted ? '🔇<span class="control-label">Mic</span>' : '🎤<span class="control-label">Mic</span>';
                 }
             }
-            
-            // Round all currency values to 2 decimal places
-            stats.totalValue = Math.round(stats.totalValue * 100) / 100;
-            stats.medicalValue = Math.round(stats.medicalValue * 100) / 100;
-            stats.furnitureValue = Math.round(stats.furnitureValue * 100) / 100;
-            
-            console.log(`Month ${month} processed: ${items.length} items, Total: ${stats.totalValue}`);
-            
-            return { items, stats };
         }
 
-        function parseAccurateNumber(value) {
-            if (value === null || value === undefined || value === '') {
-                return 0;
+        function toggleCamera() {
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.enabled = !videoTrack.enabled;
+                    isCameraOff = !videoTrack.enabled;
+                    const btn = document.getElementById('camBtn');
+                    btn.classList.toggle('active', isCameraOff);
+                    btn.innerHTML = isCameraOff ? '📷<span class="control-label">Camera</span>' : '📹<span class="control-label">Camera</span>';
+                }
             }
-            
-            let strValue = String(value).trim();
-            strValue = strValue.replace(/[^0-9.-]/g, '');
-            const numValue = parseFloat(strValue);
-            
-            return isNaN(numValue) ? 0 : Math.round(numValue * 100) / 100;
         }
 
-        function parseAccurateDate(value) {
-            if (!value) return '';
-            
-            if (typeof value === 'string') {
-                return value.trim();
+        async function toggleScreen() {
+            if (!isScreenSharing) {
+                try {
+                    screenStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: { cursor: "always" },
+                        audio: false
+                    });
+
+                    const videoTrack = screenStream.getVideoTracks()[0];
+                    
+                    // Replace video track for all connections
+                    Object.values(connections).forEach(call => {
+                        const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+                        if (sender) sender.replaceTrack(videoTrack);
+                    });
+
+                    // Update local video
+                    const localVideo = document.querySelector('#video-local video');
+                    if (localVideo) localVideo.srcObject = screenStream;
+
+                    isScreenSharing = true;
+                    document.getElementById('screenBtn').classList.add('active');
+
+                    videoTrack.onended = () => stopScreenShare();
+
+                } catch (error) {
+                    console.error('Screen share error:', error);
+                }
+            } else {
+                stopScreenShare();
             }
-            
-            if (value instanceof Date) {
-                const day = String(value.getDate()).padStart(2, '0');
-                const month = String(value.getMonth() + 1).padStart(2, '0');
-                const year = value.getFullYear();
-                return `${day}/${month}/${year}`;
-            }
-            
-            if (typeof value === 'number') {
-                const excelDate = new Date((value - 25569) * 86400 * 1000);
-                const day = String(excelDate.getDate()).padStart(2, '0');
-                const month = String(excelDate.getMonth() + 1).padStart(2, '0');
-                const year = excelDate.getFullYear();
-                return `${day}/${month}/${year}`;
-            }
-            
-            return String(value);
         }
 
-        function processRelocationData(rawData, month, sourceType) {
-            const relocationItems = [];
-            
-            // Start from row 10 (index 9) to skip headers
-            // CORRECT COLUMN MAPPING for Asset Relocation section:
-            // Column N (index 13): Date-Out
-            // Column O (index 14): Qty-Out  
-            // Column P (index 15): Asset Location
-            // Column Q (index 16): Asset Code
-            
-            console.log(`Processing relocation data for month ${month}`);
-            
-            for (let i = 9; i < rawData.length; i++) {
-                const row = rawData[i];
-                if (row && (row[13] || row[16])) { // Check if Date-Out or Asset Code exists
-                    
-                    let dateOut = parseAccurateDate(row[13]); // Column N
-                    
-                    const qtyOut = parseInt(row[14]) || 1; // Column O
-                    const assetLocation = row[15] ? String(row[15]).trim() : ''; // Column P
-                    const assetCode = row[16] ? String(row[16]).trim() : ''; // Column Q
-                    
-                    // Only add if we have meaningful data
-                    if (dateOut || assetCode || assetLocation) {
-                        relocationItems.push({
-                            dateOut: dateOut,
-                            qtyOut: qtyOut,
-                            assetLocation: assetLocation,
-                            assetCode: assetCode,
-                            month: month,
-                            source: sourceType
+        function stopScreenShare() {
+            if (screenStream) {
+                screenStream.getTracks().forEach(t => t.stop());
+                
+                const videoTrack = localStream.getVideoTracks()[0];
+                Object.values(connections).forEach(call => {
+                    const sender = call.peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+                    if (sender) sender.replaceTrack(videoTrack);
+                });
+
+                const localVideo = document.querySelector('#video-local video');
+                if (localVideo) localVideo.srcObject = localStream;
+
+                screenStream = null;
+                isScreenSharing = false;
+                document.getElementById('screenBtn').classList.remove('active');
+            }
+        }
+
+        function toggleRecording() {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+
+        function startRecording() {
+            try {
+                recordedChunks = [];
+
+                // Create canvas for combined video
+                const canvas = document.createElement('canvas');
+                canvas.width = 1920;
+                canvas.height = 1080;
+                const ctx = canvas.getContext('2d');
+
+                const canvasStream = canvas.captureStream(30);
+
+                // Mix audio
+                const audioContext = new AudioContext();
+                const dest = audioContext.createMediaStreamDestination();
+
+                if (localStream.getAudioTracks().length > 0) {
+                    const source = audioContext.createMediaStreamSource(localStream);
+                    source.connect(dest);
+                }
+
+                Object.values(connections).forEach(call => {
+                    const stream = call.remoteStream;
+                    if (stream && stream.getAudioTracks().length > 0) {
+                        const source = audioContext.createMediaStreamSource(stream);
+                        source.connect(dest);
+                    }
+                });
+
+                // Combine streams
+                const combinedStream = new MediaStream([
+                    ...canvasStream.getVideoTracks(),
+                    ...dest.stream.getAudioTracks()
+                ]);
+
+                // Draw videos
+                function drawFrame() {
+                    if (!isRecording) return;
+
+                    ctx.fillStyle = '#1a1a1a';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    const videos = document.querySelectorAll('.video-container video');
+                    const count = videos.length;
+
+                    if (count === 1) {
+                        ctx.drawImage(videos[0], 0, 0, canvas.width, canvas.height);
+                    } else if (count === 2) {
+                        const w = canvas.width / 2;
+                        videos.forEach((v, i) => {
+                            if (v.readyState >= 2) {
+                                ctx.drawImage(v, i * w, 0, w, canvas.height);
+                            }
+                        });
+                    } else {
+                        const cols = Math.ceil(Math.sqrt(count));
+                        const rows = Math.ceil(count / cols);
+                        const w = canvas.width / cols;
+                        const h = canvas.height / rows;
+                        
+                        videos.forEach((v, i) => {
+                            if (v.readyState >= 2) {
+                                const x = (i % cols) * w;
+                                const y = Math.floor(i / cols) * h;
+                                ctx.drawImage(v, x, y, w, h);
+                            }
                         });
                     }
+
+                    requestAnimationFrame(drawFrame);
                 }
-            }
-            
-            console.log(`Month ${month} relocation: ${relocationItems.length} records found`);
-            
-            return relocationItems;
-        }
 
-        function combineAndDisplayData() {
-            allAssetsData = [];
-            relocationData = [];
-            
-            if (purchasedData.allItems) {
-                allAssetsData = allAssetsData.concat(purchasedData.allItems);
-            }
-            if (donatedData.allItems) {
-                allAssetsData = allAssetsData.concat(donatedData.allItems);
-            }
-            
-            if (purchasedData.relocationItems) {
-                relocationData = relocationData.concat(purchasedData.relocationItems);
-            }
-            if (donatedData.relocationItems) {
-                relocationData = relocationData.concat(donatedData.relocationItems);
-            }
-            
-            filteredData = allAssetsData;
-            filteredAssetLocationData = relocationData;
-            
-            console.log('Total assets loaded:', allAssetsData.length);
-            console.log('Purchased totals:', purchasedData.totals);
-            console.log('Donated totals:', donatedData.totals);
-            
-            updateKPICards();
-            displayTable();
-        }
+                drawFrame();
 
-        function updateKPICards() {
-            const kpiSection = document.getElementById('kpiSection');
-            
-            const totalItems = (purchasedData.totals?.totalItems || 0) + (donatedData.totals?.totalItems || 0);
-            const totalValue = Math.round(((purchasedData.totals?.totalValue || 0) + (donatedData.totals?.totalValue || 0)) * 100) / 100;
-            const medicalItems = (purchasedData.totals?.medicalEquipment || 0) + (donatedData.totals?.medicalEquipment || 0);
-            const medicalValue = Math.round(((purchasedData.totals?.medicalValue || 0) + (donatedData.totals?.medicalValue || 0)) * 100) / 100;
-            const furnitureItems = (purchasedData.totals?.furniture || 0) + (donatedData.totals?.furniture || 0);
-            const furnitureValue = Math.round(((purchasedData.totals?.furnitureValue || 0) + (donatedData.totals?.furnitureValue || 0)) * 100) / 100;
-            
-            console.log('KPI Cards - Total Value:', totalValue, 'Medical:', medicalValue, 'Furniture:', furnitureValue);
-            
-            kpiSection.innerHTML = `
-                <div class="kpi-card green">
-                    <div class="kpi-label">Total Assets</div>
-                    <div class="kpi-value green">${totalItems.toLocaleString()}</div>
-                    <div class="kpi-subtitle">All inventory items</div>
-                </div>
-                
-                <div class="kpi-card orange">
-                    <div class="kpi-label">Total Value</div>
-                    <div class="kpi-value orange">JMD ${formatCurrency(totalValue)}</div>
-                    <div class="kpi-subtitle">Combined asset value</div>
-                </div>
-                
-                <div class="kpi-card green">
-                    <div class="kpi-label">Medical Equipment</div>
-                    <div class="kpi-value green">${medicalItems.toLocaleString()}</div>
-                    <div class="kpi-subtitle">Value: JMD ${formatCurrency(medicalValue)}</div>
-                </div>
-                
-                <div class="kpi-card orange">
-                    <div class="kpi-label">Furniture & Appliances</div>
-                    <div class="kpi-value orange">${furnitureItems.toLocaleString()}</div>
-                    <div class="kpi-subtitle">Value: JMD ${formatCurrency(furnitureValue)}</div>
-                </div>
-                
-                <div class="kpi-card green">
-                    <div class="kpi-label">Purchased Assets</div>
-                    <div class="kpi-value green">${(purchasedData.totals?.totalItems || 0).toLocaleString()}</div>
-                    <div class="kpi-subtitle">Value: JMD ${formatCurrency(purchasedData.totals?.totalValue || 0)}</div>
-                </div>
-                
-                <div class="kpi-card orange">
-                    <div class="kpi-label">Donated Assets</div>
-                    <div class="kpi-value orange">${(donatedData.totals?.totalItems || 0).toLocaleString()}</div>
-                    <div class="kpi-subtitle">Value: JMD ${formatCurrency(donatedData.totals?.totalValue || 0)}</div>
-                </div>
-            `;
-        }
-
-        function initializeCharts() {
-            const ctx1 = document.getElementById('distributionChart').getContext('2d');
-            const ctx2 = document.getElementById('monthlyChart').getContext('2d');
-            
-            distributionChart = new Chart(ctx1, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Medical Equipment', 'Furniture & Appliances'],
-                    datasets: [{
-                        data: [0, 0],
-                        backgroundColor: ['#2ECC71', '#FF6B35'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    aspectRatio: 1.5,
-                    plugins: { 
-                        legend: { 
-                            position: 'bottom',
-                            labels: {
-                                padding: 10,
-                                font: {
-                                    size: 11
-                                }
-                            }
-                        }
-                    },
-                    layout: {
-                        padding: {
-                            top: 10,
-                            bottom: 10,
-                            left: 10,
-                            right: 10
-                        }
-                    }
-                }
-            });
-            
-            monthlyChart = new Chart(ctx2, {
-                type: 'line',
-                data: {
-                    labels: months,
-                    datasets: [{
-                        label: 'Purchased (JMD)',
-                        data: new Array(12).fill(0),
-                        borderColor: '#2ECC71',
-                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4
-                    }, {
-                        label: 'Donated (JMD)',
-                        data: new Array(12).fill(0),
-                        borderColor: '#FF6B35',
-                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    aspectRatio: 1.5,
-                    plugins: { 
-                        legend: { 
-                            position: 'bottom',
-                            labels: {
-                                padding: 10
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateCharts() {
-            const medicalCount = (purchasedData.totals?.medicalEquipment || 0) + (donatedData.totals?.medicalEquipment || 0);
-            const furnitureCount = (purchasedData.totals?.furniture || 0) + (donatedData.totals?.furniture || 0);
-            
-            distributionChart.data.datasets[0].data = [medicalCount, furnitureCount];
-            distributionChart.update();
-            
-            const purchasedMonthlyValues = months.map(month => 
-                purchasedData.monthly?.[month]?.stats?.totalValue || 0
-            );
-            const donatedMonthlyValues = months.map(month => 
-                donatedData.monthly?.[month]?.stats?.totalValue || 0
-            );
-            
-            monthlyChart.data.datasets[0].data = purchasedMonthlyValues;
-            monthlyChart.data.datasets[1].data = donatedMonthlyValues;
-            monthlyChart.update();
-        }
-
-        function displayTable() {
-            const container = document.getElementById('tableContainer');
-            
-            if (filteredData.length === 0) {
-                container.innerHTML = '<div class="loading">No data to display</div>';
-                document.getElementById('grandTotalDisplay').textContent = 'JMD 0.00';
-                return;
-            }
-            
-            const grandTotal = calculateGrandTotal(filteredData);
-            document.getElementById('grandTotalDisplay').textContent = `JMD ${formatCurrency(grandTotal)}`;
-            
-            console.log(`Displaying ${filteredData.length} assets with grand total: JMD ${formatCurrency(grandTotal)}`);
-            
-            let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Asset Code</th>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Category</th>
-                            <th>Supplier/Donor</th>
-                            <th>Source</th>
-                            <th>Serial/Model</th>
-                            <th>Qty</th>
-                            <th>Unit Price (JMD)</th>
-                            <th>Total Price (JMD)</th>
-                            <th>Month</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            filteredData.forEach(item => {
-                const categoryBadge = item.category === 'Medical Equipment' 
-                    ? '<span class="item-type-badge medical">Medical</span>'
-                    : '<span class="item-type-badge furniture">Furniture</span>';
-                
-                html += `
-                    <tr>
-                        <td><span class="asset-code">${item.assetCode}</span></td>
-                        <td>${item.dateIn}</td>
-                        <td>${item.description}</td>
-                        <td>${categoryBadge}</td>
-                        <td>${item.supplier}</td>
-                        <td>${item.source}</td>
-                        <td>${item.serialModel}</td>
-                        <td>${item.quantity}</td>
-                        <td>${formatCurrency(item.unitPrice)}</td>
-                        <td><strong style="color: var(--primary-green);">${formatCurrency(item.totalPrice)}</strong></td>
-                        <td>${item.month}</td>
-                    </tr>
-                `;
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        function calculateGrandTotal(assets) {
-            let total = 0;
-            assets.forEach(asset => {
-                total += parseFloat(asset.totalPrice) || 0;
-            });
-            return Math.round(total * 100) / 100;
-        }
-
-        function performSearch() {
-            const assetCode = document.getElementById('assetCodeSearch').value.toLowerCase();
-            const description = document.getElementById('descriptionSearch').value.toLowerCase();
-            const serial = document.getElementById('serialSearch').value.toLowerCase();
-            const supplier = document.getElementById('supplierSearch').value.toLowerCase();
-            
-            if (!assetCode && !description && !serial && !supplier) {
-                alert('Please enter at least one search term');
-                return;
-            }
-            
-            const results = allAssetsData.filter(item => {
-                const matchAssetCode = !assetCode || item.assetCode.toLowerCase().includes(assetCode);
-                const matchDescription = !description || item.description.toLowerCase().includes(description);
-                const matchSerial = !serial || item.serialModel.toLowerCase().includes(serial);
-                const matchSupplier = !supplier || item.supplier.toLowerCase().includes(supplier);
-                
-                return matchAssetCode && matchDescription && matchSerial && matchSupplier;
-            });
-            
-            displaySearchResults(results);
-        }
-
-        function displaySearchResults(results) {
-            const resultsBox = document.getElementById('searchResultsBox');
-            const resultsHeader = document.getElementById('searchResultsHeader');
-            const resultsContent = document.getElementById('searchResultsContent');
-            
-            resultsHeader.textContent = `Search Results (${results.length} found)`;
-            
-            if (results.length === 0) {
-                resultsContent.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 20px;">No assets found</p>';
-            } else {
-                let html = '';
-                results.slice(0, 10).forEach(item => {
-                    html += `
-                        <div class="search-result-item">
-                            <div class="result-code">${item.assetCode}</div>
-                            <div class="result-description">${item.description}</div>
-                            <div class="result-details">
-                                <span>${item.supplier} • ${item.source}</span>
-                                <span class="result-price">JMD ${formatCurrency(item.totalPrice)}</span>
-                            </div>
-                        </div>
-                    `;
+                // Start MediaRecorder
+                mediaRecorder = new MediaRecorder(combinedStream, {
+                    mimeType: 'video/webm;codecs=vp9,opus',
+                    videoBitsPerSecond: 5000000
                 });
-                
-                if (results.length > 10) {
-                    html += `<p style="text-align: center; color: #7f8c8d; padding: 10px; font-size: 0.9em;">Showing first 10 of ${results.length} results</p>`;
-                }
-                
-                resultsContent.innerHTML = html;
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `TrainHub-${roomId}-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.webm`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    addChatMessage('System', 'Recording saved!', true);
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+
+                document.getElementById('recordBtn').classList.add('recording');
+                document.querySelectorAll('.recording-badge').forEach(b => b.classList.add('show'));
+                addChatMessage('System', 'Recording started', true);
+
+            } catch (error) {
+                console.error('Recording error:', error);
+                alert('Could not start recording');
             }
-            
-            resultsBox.classList.add('show');
         }
 
-        function clearSearch() {
-            document.getElementById('assetCodeSearch').value = '';
-            document.getElementById('descriptionSearch').value = '';
-            document.getElementById('serialSearch').value = '';
-            document.getElementById('supplierSearch').value = '';
-            document.getElementById('searchResultsBox').classList.remove('show');
-        }
-
-        function displayMonthlyBreakdown() {
-            const container = document.getElementById('monthlyBreakdownContainer');
-            let html = '';
-            
-            months.forEach(month => {
-                const purchasedStats = purchasedData.monthly?.[month]?.stats || { totalItems: 0, totalValue: 0, medicalEquipment: 0, furniture: 0 };
-                const donatedStats = donatedData.monthly?.[month]?.stats || { totalItems: 0, totalValue: 0, medicalEquipment: 0, furniture: 0 };
-                
-                const totalItems = purchasedStats.totalItems + donatedStats.totalItems;
-                const totalValue = Math.round((purchasedStats.totalValue + donatedStats.totalValue) * 100) / 100;
-                const hasData = totalItems > 0;
-                
-                const yearLabel = ['JAN', 'FEB', 'MAR'].includes(month) ? '2026/2027' : '2025/2026';
-                
-                html += `
-                    <div class="month-card ${hasData ? 'has-data' : ''}">
-                        <div class="month-header">${month} ${yearLabel}</div>
-                        <div class="month-stats">
-                            <div class="month-stat">
-                                <div class="month-stat-label">Total Items</div>
-                                <div class="month-stat-value">${totalItems}</div>
-                            </div>
-                            <div class="month-stat">
-                                <div class="month-stat-label">Total Value</div>
-                                <div class="month-stat-value" style="font-size: 1.2em;">JMD ${formatCurrency(totalValue)}</div>
-                            </div>
-                            <div class="month-stat">
-                                <div class="month-stat-label">Purchased</div>
-                                <div class="month-stat-value" style="color: var(--primary-green);">${purchasedStats.totalItems}</div>
-                            </div>
-                            <div class="month-stat">
-                                <div class="month-stat-label">Donated</div>
-                                <div class="month-stat-value" style="color: var(--primary-orange);">${donatedStats.totalItems}</div>
-                            </div>
-                            <div class="month-stat">
-                                <div class="month-stat-label">Medical</div>
-                                <div class="month-stat-value" style="font-size: 1.2em;">${purchasedStats.medicalEquipment + donatedStats.medicalEquipment}</div>
-                            </div>
-                            <div class="month-stat">
-                                <div class="month-stat-label">Furniture</div>
-                                <div class="month-stat-value" style="font-size: 1.2em;">${purchasedStats.furniture + donatedStats.furniture}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-            console.log('Monthly breakdown displayed with accurate calculations');
-        }
-
-        function switchView(view, button) {
-            currentView = view;
-            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            if (view === 'all') {
-                filteredData = allAssetsData;
-            } else {
-                filteredData = allAssetsData.filter(item => 
-                    view === 'purchased' ? item.source === 'Purchased' : item.source === 'Donated'
-                );
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                document.getElementById('recordBtn').classList.remove('recording');
+                document.querySelectorAll('.recording-badge').forEach(b => b.classList.remove('show'));
+                addChatMessage('System', 'Recording stopped', true);
             }
-            
-            console.log(`Switched to ${view} view: ${filteredData.length} assets`);
-            displayTable();
         }
 
-        function formatCurrency(value) {
-            const numValue = parseFloat(value) || 0;
-            const rounded = Math.round(numValue * 100) / 100;
-            return rounded.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
+        function sendChat() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
 
-        function updateStatus(status, message) {
-            const indicator = document.getElementById('statusIndicator');
-            const text = document.getElementById('statusText');
-            
-            indicator.className = 'status-indicator ' + status;
-            text.textContent = message;
-        }
+            if (message) {
+                Object.values(dataConnections).forEach(conn => {
+                    if (conn.open) {
+                        conn.send({
+                            type: 'chat',
+                            name: userName,
+                            message: message
+                        });
+                    }
+                });
 
-        function exportData() {
-            if (filteredData.length === 0) {
-                alert('No data to export');
-                return;
+                addChatMessage(userName + ' (You)', message);
+                input.value = '';
             }
-            
-            const wb = XLSX.utils.book_new();
-            const headers = ['Asset Code', 'Date', 'Description', 'Category', 'Supplier/Donor', 
-                           'Source', 'Serial/Model', 'Quantity', 'Unit Price (JMD)', 'Total Price (JMD)', 'Month'];
-            
-            const rows = filteredData.map(item => [
-                item.assetCode,
-                item.dateIn,
-                item.description,
-                item.category,
-                item.supplier,
-                item.source,
-                item.serialModel,
-                item.quantity,
-                parseFloat(item.unitPrice).toFixed(2),
-                parseFloat(item.totalPrice).toFixed(2),
-                item.month
-            ]);
-            
-            const grandTotal = calculateGrandTotal(filteredData);
-            rows.push([
-                '', '', '', '', '', '', '', '', 'GRAND TOTAL:', grandTotal.toFixed(2), ''
-            ]);
-            
-            const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-            XLSX.utils.book_append_sheet(wb, ws, 'Assets');
-            
-            const filename = `MayPen_Asset_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
-            XLSX.writeFile(wb, filename);
-            
-            console.log(`Exported ${filteredData.length} assets with total: JMD ${formatCurrency(grandTotal)}`);
         }
+
+        function handleChatKey(e) {
+            if (e.key === 'Enter') sendChat();
+        }
+
+        function addChatMessage(sender, text, isSystem = false) {
+            const messages = document.getElementById('chatMessages');
+            const msg = document.createElement('div');
+            msg.className = isSystem ? 'message system' : 'message';
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            msg.innerHTML = `<strong>${sender}</strong> [${time}]: ${text}`;
+            messages.appendChild(msg);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function leaveSession() {
+            if (confirm('Leave the session?')) {
+                // Notify others
+                Object.values(dataConnections).forEach(conn => {
+                    if (conn.open) {
+                        conn.send({
+                            type: 'leave',
+                            name: userName
+                        });
+                    }
+                });
+
+                // Clean up
+                if (localStream) localStream.getTracks().forEach(t => t.stop());
+                if (screenStream) screenStream.getTracks().forEach(t => t.stop());
+                if (isRecording) stopRecording();
+                if (peer) peer.destroy();
+
+                // Remove from room
+                const roomData = JSON.parse(localStorage.getItem('trainhub-' + roomId) || '{}');
+                delete roomData[myPeerId];
+                localStorage.setItem('trainhub-' + roomId, JSON.stringify(roomData));
+
+                // Reload page
+                location.reload();
+            }
+        }
+
+        // Cleanup on close
+        window.addEventListener('beforeunload', () => {
+            if (myPeerId) {
+                const roomData = JSON.parse(localStorage.getItem('trainhub-' + roomId) || '{}');
+                delete roomData[myPeerId];
+                localStorage.setItem('trainhub-' + roomId, JSON.stringify(roomData));
+            }
+        });
     </script>
 </body>
 </html>
